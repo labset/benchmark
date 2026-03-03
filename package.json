@@ -1,0 +1,22 @@
+{
+  "name": "@labset/benchmark",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "benchmark platform",
+  "homepage": "https://github.com/labset/benchmark#readme",
+  "bugs": {
+    "url": "https://github.com/labset/benchmark/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/labset/benchmark.git"
+  },
+  "license": "Apache-2.0",
+  "author": "Hasnae R.",
+  "scripts": {
+    "claude": "claude"
+  },
+  "devDependencies": {
+    "@anthropic-ai/claude-code": "^2.1.63"
+  }
+}
