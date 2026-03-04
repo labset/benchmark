@@ -105,9 +105,15 @@ export function runCommand() {
           log.info('results published to Grafana Cloud');
         }
       } finally {
-        // --- Cleanup ---
-        log.info({ target: targetName }, 'phase: cleanup');
-        await composeDown(projectDir, { composeFile: target.composeFile });
+        // --- Cleanup (only if deploy was attempted) ---
+        if (deployResult) {
+          log.info({ target: targetName }, 'phase: cleanup');
+          try {
+            await composeDown(projectDir, { composeFile: target.composeFile });
+          } catch (err) {
+            log.error({ err: err.message }, 'cleanup failed');
+          }
+        }
       }
     });
 }

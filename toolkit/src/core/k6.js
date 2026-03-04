@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { readFile, unlink } from 'node:fs/promises';
 import { exec } from '../util/exec.js';
 import { getLogger } from '../util/logger.js';
 
@@ -29,6 +29,10 @@ export async function runK6(scriptPath, options = {}) {
     env: { ...process.env, ...env },
   });
 
-  const raw = await readFile(summaryFile, 'utf-8');
-  return JSON.parse(raw);
+  try {
+    const raw = await readFile(summaryFile, 'utf-8');
+    return JSON.parse(raw);
+  } finally {
+    await unlink(summaryFile).catch(() => {});
+  }
 }

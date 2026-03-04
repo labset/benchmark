@@ -10,7 +10,7 @@ export function createLogger(verbose = false) {
       options: {
         colorize: true,
         ignore: 'pid,hostname',
-        translateTime: 'HH:MM:ss',
+        translateTime: 'HH:mm:ss',
       },
     },
   });

@@ -17,7 +17,7 @@ export function createProgram() {
     .description('API benchmark toolkit - capture build, deploy, and load test metrics')
     .version('1.0.0')
     .option('-c, --config <path>', 'path to benchmark config file', 'benchmark.config.json')
-    .option('-o, --output <dir>', 'directory for results output', './results')
+    .option('-o, --output <dir>', 'directory for results output')
     .option('-v, --verbose', 'enable verbose logging', false)
     .hook('preAction', (thisCommand) => {
       const opts = thisCommand.opts();

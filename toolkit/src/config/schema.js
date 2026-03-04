@@ -4,7 +4,7 @@ const readinessProbeSchema = z.object({
   httpGet: z
     .object({
       path: z.string().default('/health'),
-      port: z.number().int().positive(),
+      port: z.number().int().positive().optional(),
       expectedStatus: z.number().int().default(200),
     })
     .optional(),
@@ -14,7 +14,7 @@ const readinessProbeSchema = z.object({
 });
 
 const k6ConfigSchema = z.object({
-  script: z.string().default('k6/scripts/default-http.js'),
+  script: z.string().default('toolkit/k6/scripts/default-http.js'),
   vus: z.number().int().positive().default(50),
   duration: z.string().default('30s'),
   env: z.record(z.string()).default({}),

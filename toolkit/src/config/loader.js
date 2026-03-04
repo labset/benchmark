@@ -48,11 +48,28 @@ export async function loadConfig(configPath) {
   return result.data;
 }
 
+function deepMerge(defaults, overrides) {
+  const result = { ...defaults, ...overrides };
+  for (const key of Object.keys(result)) {
+    const defVal = defaults[key];
+    const ovrVal = overrides[key];
+    if (
+      defVal && ovrVal &&
+      typeof defVal === 'object' && typeof ovrVal === 'object' &&
+      !Array.isArray(defVal) && !Array.isArray(ovrVal)
+    ) {
+      result[key] = deepMerge(defVal, ovrVal);
+    }
+  }
+  return result;
+}
+
 export function resolveTarget(config, targetName) {
   const target = config.targets[targetName];
   if (!target) {
     const available = Object.keys(config.targets).join(', ');
     throw new Error(`target "${targetName}" not found. available: ${available}`);
   }
-  return { name: targetName, ...target };
+  const merged = deepMerge(config.defaults ?? {}, target);
+  return { name: targetName, ...merged };
 }
