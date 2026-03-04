@@ -12,7 +12,6 @@ API benchmark platform for comparing backend service implementations. Measures b
 ## Setup
 
 ```bash
-cd toolkit
 npm install
 ```
 
@@ -20,16 +19,16 @@ npm install
 
 ```bash
 # list configured targets
-node toolkit/bin/benchmark.js list
+npm run benchmark -- list
 
 # run a full benchmark (build + deploy + loadtest + collect)
-node toolkit/bin/benchmark.js run my-api
+npm run benchmark -- run my-api
 
 # run and publish results to Grafana Cloud
-node toolkit/bin/benchmark.js run my-api --publish
+npm run benchmark -- run my-api --publish
 
 # compare results from multiple runs
-node toolkit/bin/benchmark.js compare results/go-api-2026-03-04T12-00-00-000Z.json results/java-api-2026-03-04T12-00-00-000Z.json
+npm run benchmark -- compare results/go-api-2026-03-04T12-00-00-000Z.json results/java-api-2026-03-04T12-00-00-000Z.json
 ```
 
 ## Configuration
@@ -117,9 +116,9 @@ Values in the config using `${VAR_NAME}` syntax are interpolated from the enviro
 Runs the full benchmark pipeline: **build** → **deploy** → **loadtest** → **collect** → **cleanup**.
 
 ```bash
-node toolkit/bin/benchmark.js run my-api
-node toolkit/bin/benchmark.js run my-api --tag "go-v1.22" --publish
-node toolkit/bin/benchmark.js run my-api --skip-build --k6-vus 100 --k6-duration 60s
+npm run benchmark -- run my-api
+npm run benchmark -- run my-api --tag "go-v1.22" --publish
+npm run benchmark -- run my-api --skip-build --k6-vus 100 --k6-duration 60s
 ```
 
 | Option | Description |
@@ -139,8 +138,8 @@ Results are written to `results/<target>-<timestamp>.json`.
 Runs only the Docker Compose build step and reports the build time.
 
 ```bash
-node toolkit/bin/benchmark.js build my-api
-node toolkit/bin/benchmark.js build my-api --cache
+npm run benchmark -- build my-api
+npm run benchmark -- build my-api --cache
 ```
 
 ### `benchmark deploy <target>`
@@ -148,7 +147,7 @@ node toolkit/bin/benchmark.js build my-api --cache
 Starts the service with `docker compose up -d` and waits for it to become healthy. Reports the time from start to ready.
 
 ```bash
-node toolkit/bin/benchmark.js deploy my-api
+npm run benchmark -- deploy my-api
 ```
 
 ### `benchmark loadtest <target>`
@@ -156,8 +155,8 @@ node toolkit/bin/benchmark.js deploy my-api
 Runs a k6 load test against an already-running target.
 
 ```bash
-node toolkit/bin/benchmark.js loadtest my-api
-node toolkit/bin/benchmark.js loadtest my-api --k6-vus 100 --k6-duration 1m
+npm run benchmark -- loadtest my-api
+npm run benchmark -- loadtest my-api --k6-vus 100 --k6-duration 1m
 ```
 
 ### `benchmark publish <results>`
@@ -165,7 +164,7 @@ node toolkit/bin/benchmark.js loadtest my-api --k6-vus 100 --k6-duration 1m
 Publishes a results JSON file to Grafana Cloud.
 
 ```bash
-node toolkit/bin/benchmark.js publish results/my-api-2026-03-04T12-00-00-000Z.json
+npm run benchmark -- publish results/my-api-2026-03-04T12-00-00-000Z.json
 ```
 
 ### `benchmark compare <targets...>`
@@ -173,7 +172,7 @@ node toolkit/bin/benchmark.js publish results/my-api-2026-03-04T12-00-00-000Z.js
 Compares multiple result files side-by-side in a terminal table. Best values are highlighted in green.
 
 ```bash
-node toolkit/bin/benchmark.js compare results/go-api-*.json results/java-api-*.json
+npm run benchmark -- compare results/go-api-*.json results/java-api-*.json
 ```
 
 ### `benchmark list`
@@ -181,7 +180,7 @@ node toolkit/bin/benchmark.js compare results/go-api-*.json results/java-api-*.j
 Lists all targets defined in the config file.
 
 ```bash
-node toolkit/bin/benchmark.js list
+npm run benchmark -- list
 ```
 
 ### `benchmark clean <target>`
@@ -189,8 +188,8 @@ node toolkit/bin/benchmark.js list
 Tears down a target with `docker compose down`.
 
 ```bash
-node toolkit/bin/benchmark.js clean my-api
-node toolkit/bin/benchmark.js clean my-api --no-volumes  # keep volumes
+npm run benchmark -- clean my-api
+npm run benchmark -- clean my-api --no-volumes  # keep volumes
 ```
 
 ### Global options
@@ -260,8 +259,8 @@ Custom scripts receive environment variables defined in `k6.env`. The bundled sc
 1. Create your project under `examples/` (or anywhere) with a `docker-compose.yml`
 2. Make sure the service has a health endpoint
 3. Add a target entry to `benchmark.config.json`
-4. Run `node toolkit/bin/benchmark.js list` to verify
-5. Run `node toolkit/bin/benchmark.js run <target-name>`
+4. Run `npm run benchmark -- list` to verify
+5. Run `npm run benchmark -- run <target-name>`
 
 ## Project structure
 
