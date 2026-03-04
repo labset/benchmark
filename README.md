@@ -87,16 +87,16 @@ All targets are defined in `benchmark.config.json` at the repo root. Each target
 
 ### Target fields
 
-| Field | Required | Default | Description |
-|-------|----------|---------|-------------|
-| `path` | yes | | Path to the project directory containing the compose file |
-| `composeFile` | no | `docker-compose.yml` | Compose file name |
-| `service` | yes | | Primary service name in the compose file |
-| `port` | yes | | Port the service exposes on localhost |
-| `protocol` | no | `http` | `http` or `grpc` |
-| `readinessProbe` | no | see defaults | How to check if the service is ready |
-| `k6` | no | see defaults | k6 load test configuration |
-| `tags` | no | `{}` | Metadata labels (language, framework, etc.) |
+| Field            | Required | Default              | Description                                               |
+| ---------------- | -------- | -------------------- | --------------------------------------------------------- |
+| `path`           | yes      |                      | Path to the project directory containing the compose file |
+| `composeFile`    | no       | `docker-compose.yml` | Compose file name                                         |
+| `service`        | yes      |                      | Primary service name in the compose file                  |
+| `port`           | yes      |                      | Port the service exposes on localhost                     |
+| `protocol`       | no       | `http`               | `http` or `grpc`                                          |
+| `readinessProbe` | no       | see defaults         | How to check if the service is ready                      |
+| `k6`             | no       | see defaults         | k6 load test configuration                                |
+| `tags`           | no       | `{}`                 | Metadata labels (language, framework, etc.)               |
 
 ### Environment variables
 
@@ -121,15 +121,15 @@ npm run benchmark -- run my-api --tag "go-v1.22" --publish
 npm run benchmark -- run my-api --skip-build --k6-vus 100 --k6-duration 60s
 ```
 
-| Option | Description |
-|--------|-------------|
-| `--skip-build` | Skip the Docker build step |
-| `--skip-loadtest` | Skip the k6 load test step |
-| `--k6-vus <n>` | Override virtual users count |
-| `--k6-duration <d>` | Override test duration (e.g. `30s`, `1m`) |
-| `--tag <label>` | Label this run for comparison |
-| `--publish` | Push results to Grafana Cloud after the run |
-| `--cache` | Allow Docker build cache (default: no cache for fair benchmarks) |
+| Option              | Description                                                      |
+| ------------------- | ---------------------------------------------------------------- |
+| `--skip-build`      | Skip the Docker build step                                       |
+| `--skip-loadtest`   | Skip the k6 load test step                                       |
+| `--k6-vus <n>`      | Override virtual users count                                     |
+| `--k6-duration <d>` | Override test duration (e.g. `30s`, `1m`)                        |
+| `--tag <label>`     | Label this run for comparison                                    |
+| `--publish`         | Push results to Grafana Cloud after the run                      |
+| `--cache`           | Allow Docker build cache (default: no cache for fair benchmarks) |
 
 Results are written to `results/<target>-<timestamp>.json`.
 
@@ -194,34 +194,37 @@ npm run benchmark -- clean my-api --no-volumes  # keep volumes
 
 ### Global options
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `-c, --config <path>` | `benchmark.config.json` | Path to config file |
-| `-o, --output <dir>` | `./results` | Directory for result files |
-| `-v, --verbose` | `false` | Enable debug logging |
+| Option                | Default                 | Description                |
+| --------------------- | ----------------------- | -------------------------- |
+| `-c, --config <path>` | `benchmark.config.json` | Path to config file        |
+| `-o, --output <dir>`  | `./results`             | Directory for result files |
+| `-v, --verbose`       | `false`                 | Enable debug logging       |
 
 ## Metrics captured
 
 ### Build time
+
 Wall-clock time of `docker compose build --no-cache`, measured with `process.hrtime.bigint()`.
 
 ### Deploy time
+
 Time from `docker compose up -d` until the service health check passes. Health is verified by polling the configured `readinessProbe.httpGet` endpoint.
 
 ### Load test (k6)
+
 Parsed from k6's `--summary-export` JSON output:
 
-| Metric | Description |
-|--------|-------------|
-| `httpReqs` | Total HTTP requests |
-| `httpReqsPerSec` | Throughput (requests/second) |
-| `httpReqDuration.avg` | Average response time (ms) |
-| `httpReqDuration.med` | Median / p50 response time (ms) |
+| Metric                | Description                        |
+| --------------------- | ---------------------------------- |
+| `httpReqs`            | Total HTTP requests                |
+| `httpReqsPerSec`      | Throughput (requests/second)       |
+| `httpReqDuration.avg` | Average response time (ms)         |
+| `httpReqDuration.med` | Median / p50 response time (ms)    |
 | `httpReqDuration.p90` | 90th percentile response time (ms) |
 | `httpReqDuration.p95` | 95th percentile response time (ms) |
 | `httpReqDuration.p99` | 99th percentile response time (ms) |
-| `httpReqFailed` | Error rate (0.0 - 1.0) |
-| `checksPassRate` | k6 check pass rate (0.0 - 1.0) |
+| `httpReqFailed`       | Error rate (0.0 - 1.0)             |
+| `checksPassRate`      | k6 check pass rate (0.0 - 1.0)     |
 
 ## Grafana Cloud publishing
 

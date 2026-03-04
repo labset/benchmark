@@ -42,7 +42,5 @@ export async function waitForHealthy(target) {
     await sleep(intervalMs);
   }
 
-  throw new Error(
-    `service failed to become healthy within ${timeoutMs}ms: ${lastError?.message}`
-  );
+  throw new Error(`service failed to become healthy within ${timeoutMs}ms: ${lastError?.message}`);
 }

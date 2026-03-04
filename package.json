@@ -18,9 +18,18 @@
   ],
   "scripts": {
     "claude": "claude",
-    "benchmark": "node toolkit/bin/benchmark.js"
+    "benchmark": "node toolkit/bin/benchmark.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "@anthropic-ai/claude-code": "^2.1.63"
+    "@anthropic-ai/claude-code": "^2.1.63",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.4.0",
+    "prettier": "^3.8.1"
   }
 }

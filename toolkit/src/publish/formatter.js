@@ -53,14 +53,26 @@ export function formatAsOtlpMetrics(results) {
   // Build metrics
   if (results.metrics.build) {
     metrics.push(
-      makeGauge('benchmark.build.duration', 'ms', results.metrics.build.durationMs, timeUnixNano, metricAttributes)
+      makeGauge(
+        'benchmark.build.duration',
+        'ms',
+        results.metrics.build.durationMs,
+        timeUnixNano,
+        metricAttributes
+      )
     );
   }
 
   // Deploy metrics
   if (results.metrics.deploy) {
     metrics.push(
-      makeGauge('benchmark.deploy.duration', 'ms', results.metrics.deploy.durationMs, timeUnixNano, metricAttributes)
+      makeGauge(
+        'benchmark.deploy.duration',
+        'ms',
+        results.metrics.deploy.durationMs,
+        timeUnixNano,
+        metricAttributes
+      )
     );
   }
 
@@ -70,18 +82,84 @@ export function formatAsOtlpMetrics(results) {
 
     metrics.push(
       makeGauge('benchmark.http_reqs', '1', summary.httpReqs, timeUnixNano, metricAttributes),
-      makeGauge('benchmark.http_reqs_per_sec', '1/s', summary.httpReqsPerSec, timeUnixNano, metricAttributes),
-      makeGauge('benchmark.http_req_failed_rate', '1', summary.httpReqFailed, timeUnixNano, metricAttributes),
-      makeGauge('benchmark.http_req.duration.avg', 'ms', summary.httpReqDuration.avg, timeUnixNano, metricAttributes),
-      makeGauge('benchmark.http_req.duration.min', 'ms', summary.httpReqDuration.min, timeUnixNano, metricAttributes),
-      makeGauge('benchmark.http_req.duration.med', 'ms', summary.httpReqDuration.med, timeUnixNano, metricAttributes),
-      makeGauge('benchmark.http_req.duration.max', 'ms', summary.httpReqDuration.max, timeUnixNano, metricAttributes),
-      makeGauge('benchmark.http_req.duration.p90', 'ms', summary.httpReqDuration.p90, timeUnixNano, metricAttributes),
-      makeGauge('benchmark.http_req.duration.p95', 'ms', summary.httpReqDuration.p95, timeUnixNano, metricAttributes),
-      makeGauge('benchmark.http_req.duration.p99', 'ms', summary.httpReqDuration.p99, timeUnixNano, metricAttributes),
-      makeGauge('benchmark.checks_pass_rate', '1', summary.checksPassRate, timeUnixNano, metricAttributes),
+      makeGauge(
+        'benchmark.http_reqs_per_sec',
+        '1/s',
+        summary.httpReqsPerSec,
+        timeUnixNano,
+        metricAttributes
+      ),
+      makeGauge(
+        'benchmark.http_req_failed_rate',
+        '1',
+        summary.httpReqFailed,
+        timeUnixNano,
+        metricAttributes
+      ),
+      makeGauge(
+        'benchmark.http_req.duration.avg',
+        'ms',
+        summary.httpReqDuration.avg,
+        timeUnixNano,
+        metricAttributes
+      ),
+      makeGauge(
+        'benchmark.http_req.duration.min',
+        'ms',
+        summary.httpReqDuration.min,
+        timeUnixNano,
+        metricAttributes
+      ),
+      makeGauge(
+        'benchmark.http_req.duration.med',
+        'ms',
+        summary.httpReqDuration.med,
+        timeUnixNano,
+        metricAttributes
+      ),
+      makeGauge(
+        'benchmark.http_req.duration.max',
+        'ms',
+        summary.httpReqDuration.max,
+        timeUnixNano,
+        metricAttributes
+      ),
+      makeGauge(
+        'benchmark.http_req.duration.p90',
+        'ms',
+        summary.httpReqDuration.p90,
+        timeUnixNano,
+        metricAttributes
+      ),
+      makeGauge(
+        'benchmark.http_req.duration.p95',
+        'ms',
+        summary.httpReqDuration.p95,
+        timeUnixNano,
+        metricAttributes
+      ),
+      makeGauge(
+        'benchmark.http_req.duration.p99',
+        'ms',
+        summary.httpReqDuration.p99,
+        timeUnixNano,
+        metricAttributes
+      ),
+      makeGauge(
+        'benchmark.checks_pass_rate',
+        '1',
+        summary.checksPassRate,
+        timeUnixNano,
+        metricAttributes
+      ),
       makeGauge('benchmark.iterations', '1', summary.iterations, timeUnixNano, metricAttributes),
-      makeGauge('benchmark.iterations_per_sec', '1/s', summary.iterationsPerSec, timeUnixNano, metricAttributes),
+      makeGauge(
+        'benchmark.iterations_per_sec',
+        '1/s',
+        summary.iterationsPerSec,
+        timeUnixNano,
+        metricAttributes
+      )
     );
   }
 

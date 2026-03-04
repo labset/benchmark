@@ -29,9 +29,9 @@ export async function loadConfig(configPath) {
     raw = JSON.parse(content);
   } catch (err) {
     if (err.code === 'ENOENT') {
-      throw new Error(`config file not found: ${absolutePath}`);
+      throw new Error(`config file not found: ${absolutePath}`, { cause: err });
     }
-    throw new Error(`failed to parse config file: ${err.message}`);
+    throw new Error(`failed to parse config file: ${err.message}`, { cause: err });
   }
 
   const interpolated = interpolateEnvVars(raw);
@@ -54,9 +54,12 @@ function deepMerge(defaults, overrides) {
     const defVal = defaults[key];
     const ovrVal = overrides[key];
     if (
-      defVal && ovrVal &&
-      typeof defVal === 'object' && typeof ovrVal === 'object' &&
-      !Array.isArray(defVal) && !Array.isArray(ovrVal)
+      defVal &&
+      ovrVal &&
+      typeof defVal === 'object' &&
+      typeof ovrVal === 'object' &&
+      !Array.isArray(defVal) &&
+      !Array.isArray(ovrVal)
     ) {
       result[key] = deepMerge(defVal, ovrVal);
     }

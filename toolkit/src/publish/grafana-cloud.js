@@ -20,7 +20,10 @@ export async function publishToGrafanaCloud(results, config) {
   const url = `${endpoint}/v1/metrics`;
   const auth = Buffer.from(`${instanceId}:${apiKey}`).toString('base64');
 
-  log.debug({ url, metricsCount: body.resourceMetrics[0].scopeMetrics[0].metrics.length }, 'publishing to Grafana Cloud');
+  log.debug(
+    { url, metricsCount: body.resourceMetrics[0].scopeMetrics[0].metrics.length },
+    'publishing to Grafana Cloud'
+  );
 
   const maxRetries = 3;
   let lastError;

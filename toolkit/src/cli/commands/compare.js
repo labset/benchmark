@@ -7,7 +7,7 @@ export function compareCommand() {
   return new Command('compare')
     .description('compare benchmark results across targets')
     .argument('<targets...>', 'result file paths to compare')
-    .action(async (targets, options, command) => {
+    .action(async (targets) => {
       const log = getLogger();
 
       log.info({ files: targets.length }, 'loading results for comparison');
