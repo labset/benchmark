@@ -4,7 +4,7 @@ import globals from 'globals';
 
 export default [
   {
-    ignores: ['node_modules/', 'results/', 'dist/', 'out/', 'target/', 'toolkit/k6/'],
+    ignores: ['node_modules/', 'k6/'],
   },
   js.configs.recommended,
   prettier,
