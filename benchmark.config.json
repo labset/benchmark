@@ -1,0 +1,49 @@
+{
+  "targets": {
+    "example-api": {
+      "path": "./examples/example-api",
+      "composeFile": "docker-compose.yml",
+      "service": "api",
+      "port": 8080,
+      "protocol": "http",
+      "readinessProbe": {
+        "httpGet": {
+          "path": "/health",
+          "port": 8080,
+          "expectedStatus": 200
+        }
+      },
+      "k6": {
+        "script": "toolkit/k6/scripts/default-http.js",
+        "vus": 50,
+        "duration": "30s",
+        "env": {
+          "BASE_URL": "http://localhost:8080"
+        }
+      },
+      "tags": {
+        "language": "example",
+        "framework": "example"
+      }
+    }
+  },
+  "defaults": {
+    "k6": {
+      "vus": 50,
+      "duration": "30s"
+    },
+    "readinessProbe": {
+      "initialDelayMs": 2000,
+      "intervalMs": 1000,
+      "timeoutMs": 120000
+    }
+  },
+  "grafana": {
+    "endpoint": "https://otlp-gateway-prod-us-central-0.grafana.net/otlp",
+    "instanceId": "${GRAFANA_INSTANCE_ID}",
+    "apiKey": "${GRAFANA_API_KEY}"
+  },
+  "output": {
+    "dir": "./results"
+  }
+}

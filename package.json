@@ -13,8 +13,17 @@
   },
   "license": "Apache-2.0",
   "author": "Hasnae R.",
+  "workspaces": [
+    "toolkit"
+  ],
   "scripts": {
-    "claude": "claude"
+    "claude": "claude",
+    "benchmark": "node toolkit/bin/benchmark.js",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "format": "npm run format --workspaces --if-present",
+    "format:check": "npm run format:check --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
   },
   "devDependencies": {
     "@anthropic-ai/claude-code": "^2.1.63"
