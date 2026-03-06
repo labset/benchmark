@@ -7,7 +7,8 @@ export async function writeResults(results, outputDir) {
   await mkdir(outputDir, { recursive: true });
 
   const timestamp = results.timestamp.replace(/[:.]/g, '-');
-  const filename = `${results.target}-${timestamp}.json`;
+  const safeName = results.target.replace(/\//g, '-');
+  const filename = `${safeName}-${timestamp}.json`;
   const filepath = join(outputDir, filename);
 
   await writeFile(filepath, JSON.stringify(results, null, 2), 'utf-8');
