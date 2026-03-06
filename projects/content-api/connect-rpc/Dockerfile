@@ -1,5 +1,5 @@
 # Stage 1: Generate protobuf + Connect RPC code
-FROM golang:1.23-alpine AS generate
+FROM golang:1.25.6-alpine AS generate
 
 RUN apk add --no-cache git
 RUN go install github.com/bufbuild/buf/cmd/buf@latest
@@ -14,7 +14,7 @@ RUN echo 'version: v1' > proto/buf.yaml
 RUN buf generate proto
 
 # Stage 2: Build Go binary
-FROM golang:1.23-alpine AS builder
+FROM golang:1.25.6-alpine AS builder
 
 WORKDIR /app
 COPY connect-rpc/ .
