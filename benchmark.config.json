@@ -1,5 +1,35 @@
 {
-  "targets": {},
+  "targets": {
+    "content-api/connect-rpc": {
+      "path": "./projects/content-api/connect-rpc",
+      "composeFile": "docker-compose.yml",
+      "service": "api",
+      "port": 50051,
+      "protocol": "grpc",
+      "readinessProbe": {
+        "httpGet": {
+          "path": "/health",
+          "port": 8080,
+          "expectedStatus": 200
+        }
+      },
+      "k6": {
+        "script": "./projects/content-api/_shared/protobuf/k6/content-api.js",
+        "vus": 50,
+        "duration": "30s",
+        "env": {
+          "GRPC_HOST": "localhost:50051",
+          "PROTO_PATH": "./projects/content-api/_shared/protobuf/content.proto"
+        }
+      },
+      "tags": {
+        "project": "content-api",
+        "language": "go",
+        "framework": "connect-rpc",
+        "api-style": "protobuf"
+      }
+    }
+  },
   "defaults": {
     "k6": {
       "vus": 50,
