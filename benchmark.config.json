@@ -1,32 +1,5 @@
 {
-  "targets": {
-    "example-api": {
-      "path": "./examples/example-api",
-      "composeFile": "docker-compose.yml",
-      "service": "api",
-      "port": 8080,
-      "protocol": "http",
-      "readinessProbe": {
-        "httpGet": {
-          "path": "/health",
-          "port": 8080,
-          "expectedStatus": 200
-        }
-      },
-      "k6": {
-        "script": "toolkit/k6/scripts/default-http.js",
-        "vus": 50,
-        "duration": "30s",
-        "env": {
-          "BASE_URL": "http://localhost:8080"
-        }
-      },
-      "tags": {
-        "language": "example",
-        "framework": "example"
-      }
-    }
-  },
+  "targets": {},
   "defaults": {
     "k6": {
       "vus": 50,
