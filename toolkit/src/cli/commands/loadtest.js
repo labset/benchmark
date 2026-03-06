@@ -29,15 +29,13 @@ export function loadtestCommand() {
       const rawSummary = await runK6(scriptPath, { vus, duration, env });
       const summary = parseK6Summary(rawSummary);
 
-      log.info(
-        {
-          target: targetName,
-          reqsPerSec: summary.httpReqsPerSec.toFixed(1),
-          p95: summary.httpReqDuration.p95.toFixed(1),
-          errorRate: summary.httpReqFailed.toFixed(4),
-        },
-        'load test completed'
-      );
+      log.info({
+        target: targetName,
+        reqsPerSec: summary.httpReqsPerSec.toFixed(1),
+        p95: summary.httpReqDuration.p95.toFixed(1),
+        errorRate: summary.httpReqFailed.toFixed(4),
+        msg: 'load test completed',
+      });
 
       return {
         config: { vus, duration, script: target.k6.script },

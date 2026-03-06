@@ -21,7 +21,7 @@ function interpolateEnvVars(obj) {
 export async function loadConfig(configPath) {
   const log = getLogger();
   const absolutePath = resolve(configPath);
-  log.debug({ path: absolutePath }, 'loading config');
+  log.debug({ path: absolutePath, msg: 'loading config' });
 
   let raw;
   try {
@@ -44,7 +44,7 @@ export async function loadConfig(configPath) {
     throw new Error(`invalid config:\n${issues}`);
   }
 
-  log.debug({ targets: Object.keys(result.data.targets) }, 'config loaded');
+  log.debug({ targets: Object.keys(result.data.targets), msg: 'config loaded' });
   return result.data;
 }
 

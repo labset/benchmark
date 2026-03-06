@@ -28,7 +28,7 @@ export function deployCommand() {
 
       const readyAt = new Date().toISOString();
       const { durationMs, durationSec } = timer.stop();
-      log.info({ target: targetName, durationMs, durationSec }, 'deploy completed');
+      log.info({ target: targetName, durationMs, durationSec, msg: 'deploy completed' });
 
       return { durationMs, startedAt, readyAt };
     });

@@ -22,7 +22,7 @@ export async function runK6(scriptPath, options = {}) {
     scriptPath,
   ];
 
-  log.info({ scriptPath, vus, duration }, 'running k6 load test');
+  log.info({ scriptPath, vus, duration, msg: 'running k6 load test' });
 
   await exec('k6', args, {
     stdio: 'inherit',

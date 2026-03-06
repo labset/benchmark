@@ -18,8 +18,8 @@ export function publishCommand() {
       const content = await readFile(absolutePath, 'utf-8');
       const results = JSON.parse(content);
 
-      log.info({ file: absolutePath, target: results.target }, 'publishing results');
+      log.info({ file: absolutePath, target: results.target, msg: 'publishing results' });
       await publishToGrafanaCloud(results, config);
-      log.info('publish completed');
+      log.info({ msg: 'publish completed' });
     });
 }

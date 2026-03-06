@@ -21,6 +21,6 @@ export function cleanCommand() {
         volumes: options.volumes,
       });
 
-      log.info({ target: targetName }, 'clean completed');
+      log.info({ target: targetName, msg: 'clean completed' });
     });
 }

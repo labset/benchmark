@@ -10,7 +10,7 @@ export function compareCommand() {
     .action(async (targets) => {
       const log = getLogger();
 
-      log.info({ files: targets.length }, 'loading results for comparison');
+      log.info({ files: targets.length, msg: 'loading results for comparison' });
       const results = await loadResults(targets);
       const comparison = compareResults(results);
 

@@ -11,7 +11,7 @@ export async function writeResults(results, outputDir) {
   const filepath = join(outputDir, filename);
 
   await writeFile(filepath, JSON.stringify(results, null, 2), 'utf-8');
-  log.info({ filepath }, 'results written');
+  log.info({ filepath, msg: 'results written' });
 
   return filepath;
 }

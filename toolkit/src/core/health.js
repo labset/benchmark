@@ -10,7 +10,7 @@ export async function waitForHealthy(target) {
   const { initialDelayMs, intervalMs, timeoutMs } = readinessProbe;
 
   if (!readinessProbe.httpGet) {
-    log.info('no readiness probe configured, skipping health check');
+    log.info({ msg: 'no readiness probe configured, skipping health check' });
     return;
   }
 
@@ -18,7 +18,7 @@ export async function waitForHealthy(target) {
   const probePort = readinessProbe.httpGet.port ?? port;
   const url = `http://localhost:${probePort}${path}`;
 
-  log.info({ url, timeoutMs }, 'waiting for service to be healthy');
+  log.info({ url, timeoutMs, msg: 'waiting for service to be healthy' });
 
   await sleep(initialDelayMs);
 
@@ -31,14 +31,14 @@ export async function waitForHealthy(target) {
         signal: AbortSignal.timeout(5000),
       });
       if (response.status === expectedStatus) {
-        log.info({ url, status: response.status }, 'service is healthy');
+        log.info({ url, status: response.status, msg: 'service is healthy' });
         return;
       }
       lastError = new Error(`unexpected status: ${response.status}`);
     } catch (err) {
       lastError = err;
     }
-    log.debug({ url, error: lastError.message }, 'health check failed, retrying');
+    log.debug({ url, error: lastError.message, msg: 'health check failed, retrying' });
     await sleep(intervalMs);
   }
 

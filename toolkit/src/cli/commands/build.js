@@ -25,7 +25,7 @@ export function buildCommand() {
       });
 
       const { durationMs, durationSec } = timer.stop();
-      log.info({ target: targetName, durationMs, durationSec }, 'build completed');
+      log.info({ target: targetName, durationMs, durationSec, msg: 'build completed' });
 
       return { durationMs, cached: options.cache };
     });

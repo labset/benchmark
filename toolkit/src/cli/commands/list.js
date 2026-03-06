@@ -12,7 +12,7 @@ export function listCommand() {
 
       const targets = Object.entries(config.targets);
       if (targets.length === 0) {
-        log.info('no targets configured');
+        log.info({ msg: 'no targets configured' });
         return;
       }
 

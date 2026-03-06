@@ -12,7 +12,7 @@ export async function composeBuild(projectDir, options = {}) {
   const args = composeArgs(composeFile, ['build']);
   if (noCache) args.push('--no-cache');
 
-  log.info({ projectDir, noCache }, 'building docker compose project');
+  log.info({ projectDir, noCache, msg: 'building docker compose project' });
   return exec('docker', ['compose', ...args], {
     cwd: projectDir,
     stdio: 'inherit',
@@ -25,7 +25,7 @@ export async function composeUp(projectDir, options = {}) {
 
   const args = composeArgs(composeFile, ['up', '-d', '--wait']);
 
-  log.info({ projectDir }, 'starting docker compose project');
+  log.info({ projectDir, msg: 'starting docker compose project' });
   return exec('docker', ['compose', ...args], {
     cwd: projectDir,
     stdio: 'inherit',
@@ -39,7 +39,7 @@ export async function composeDown(projectDir, options = {}) {
   const args = composeArgs(composeFile, ['down']);
   if (volumes) args.push('-v');
 
-  log.info({ projectDir }, 'stopping docker compose project');
+  log.info({ projectDir, msg: 'stopping docker compose project' });
   return exec('docker', ['compose', ...args], {
     cwd: projectDir,
     stdio: 'inherit',

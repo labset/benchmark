@@ -36,7 +36,7 @@ export function runCommand() {
       try {
         // --- Build phase ---
         if (!options.skipBuild) {
-          log.info({ target: targetName }, 'phase: build');
+          log.info({ target: targetName, msg: 'phase: build' });
           const timer = startTimer();
           await composeBuild(projectDir, {
             composeFile: target.composeFile,
@@ -44,11 +44,11 @@ export function runCommand() {
           });
           const { durationMs } = timer.stop();
           buildResult = { durationMs, cached: options.cache };
-          log.info({ durationMs }, 'build completed');
+          log.info({ durationMs, msg: 'build completed' });
         }
 
         // --- Deploy phase ---
-        log.info({ target: targetName }, 'phase: deploy');
+        log.info({ target: targetName, msg: 'phase: deploy' });
         const deployTimer = startTimer();
         const startedAt = new Date().toISOString();
 
@@ -60,11 +60,11 @@ export function runCommand() {
         const readyAt = new Date().toISOString();
         const { durationMs: deployMs } = deployTimer.stop();
         deployResult = { durationMs: deployMs, startedAt, readyAt };
-        log.info({ durationMs: deployMs }, 'deploy completed');
+        log.info({ durationMs: deployMs, msg: 'deploy completed' });
 
         // --- Load test phase ---
         if (!options.skipLoadtest) {
-          log.info({ target: targetName }, 'phase: loadtest');
+          log.info({ target: targetName, msg: 'phase: loadtest' });
           const scriptPath = resolve(target.k6.script);
           const vus = options.k6Vus ? parseInt(options.k6Vus, 10) : target.k6.vus;
           const duration = options.k6Duration ?? target.k6.duration;
@@ -80,13 +80,11 @@ export function runCommand() {
             config: { vus, duration, script: target.k6.script },
             summary,
           };
-          log.info(
-            {
-              reqsPerSec: summary.httpReqsPerSec.toFixed(1),
-              p95: summary.httpReqDuration.p95.toFixed(1),
-            },
-            'loadtest completed'
-          );
+          log.info({
+            reqsPerSec: summary.httpReqsPerSec.toFixed(1),
+            p95: summary.httpReqDuration.p95.toFixed(1),
+            msg: 'loadtest completed',
+          });
         }
 
         // --- Collect results ---
@@ -99,22 +97,22 @@ export function runCommand() {
         });
 
         const filepath = await writeResults(results, outputDir);
-        log.info({ filepath }, 'benchmark run completed');
+        log.info({ filepath, msg: 'benchmark run completed' });
 
         // --- Publish (if requested) ---
         if (options.publish) {
           const { publishToGrafanaCloud } = await import('../../publish/grafana-cloud.js');
           await publishToGrafanaCloud(results, config);
-          log.info('results published to Grafana Cloud');
+          log.info({ msg: 'results published to Grafana Cloud' });
         }
       } finally {
         // --- Cleanup (only if deploy was attempted) ---
         if (deployResult) {
-          log.info({ target: targetName }, 'phase: cleanup');
+          log.info({ target: targetName, msg: 'phase: cleanup' });
           try {
             await composeDown(projectDir, { composeFile: target.composeFile });
           } catch (err) {
-            log.error({ err: err.message }, 'cleanup failed');
+            log.error({ err: err.message, msg: 'cleanup failed' });
           }
         }
       }
