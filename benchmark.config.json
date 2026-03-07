@@ -41,9 +41,8 @@
     }
   },
   "grafana": {
-    "endpoint": "https://otlp-gateway-prod-us-central-0.grafana.net/otlp",
-    "instanceId": "${GRAFANA_INSTANCE_ID}",
-    "apiKey": "${GRAFANA_API_KEY}"
+    "endpoint": "${GRAFANA_OTLP_ENDPOINT}",
+    "token": "${GRAFANA_API_TOKEN}"
   },
   "output": {
     "dir": "./results"

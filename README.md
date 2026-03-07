@@ -28,11 +28,14 @@ cp .env.example .env
 Then fill in your credentials:
 
 ```env
-GRAFANA_INSTANCE_ID=123456
-GRAFANA_API_KEY=glc_eyJ...
+GRAFANA_OTLP_ENDPOINT=https://otlp-gateway-prod-us-central-0.grafana.net/otlp
+GRAFANA_API_TOKEN=<base64-encoded token>
 ```
 
-To find these values, sign in to [Grafana Cloud](https://grafana.com), open your stack, and go to **Connections** > **OpenTelemetry (OTLP)**. The instance ID is the numeric identifier shown on the configuration page. For the API key, click **Generate now** to create a Cloud Access Policy token with `metrics:write` scope.
+To find these values, sign in to [Grafana Cloud](https://grafana.com), open your stack, and go to **Connections** > **OpenTelemetry (OTLP)**:
+
+1. Copy the **OTLP endpoint** URL
+2. Generate an API token — the page will show `OTEL_EXPORTER_OTLP_HEADERS` containing `Authorization=Basic <token>`. Copy the base64 token value after `Basic `.
 
 These variables are interpolated into `benchmark.config.json` at load time wherever `${VAR_NAME}` syntax is used.
 
@@ -150,9 +153,8 @@ All targets are defined in `benchmark.config.json` at the repo root. Each target
     }
   },
   "grafana": {
-    "endpoint": "https://otlp-gateway-prod-us-central-0.grafana.net/otlp",
-    "instanceId": "${GRAFANA_INSTANCE_ID}",
-    "apiKey": "${GRAFANA_API_KEY}"
+    "endpoint": "${GRAFANA_OTLP_ENDPOINT}",
+    "token": "${GRAFANA_API_TOKEN}"
   },
   "output": { "dir": "./results" }
 }
@@ -175,10 +177,10 @@ All targets are defined in `benchmark.config.json` at the repo root. Each target
 
 Grafana Cloud credentials are resolved from environment variables at config load time. The toolkit automatically loads a `.env` file from the repository root (see [Setup](#grafana-cloud-optional)).
 
-| Variable               | Description                                        |
-| ---------------------- | -------------------------------------------------- |
-| `GRAFANA_INSTANCE_ID`  | Grafana Cloud instance ID (numeric)                |
-| `GRAFANA_API_KEY`      | Cloud Access Policy token with `metrics:write`     |
+| Variable               | Description                                                    |
+| ---------------------- | -------------------------------------------------------------- |
+| `GRAFANA_OTLP_ENDPOINT`| Grafana Cloud OTLP gateway URL                                |
+| `GRAFANA_API_TOKEN`    | Base64-encoded token from `OTEL_EXPORTER_OTLP_HEADERS`        |
 
 Values in `benchmark.config.json` using `${VAR_NAME}` syntax are interpolated from `process.env`.
 

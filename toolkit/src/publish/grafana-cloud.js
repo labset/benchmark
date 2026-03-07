@@ -8,17 +8,16 @@ export async function publishToGrafanaCloud(results, config) {
     throw new Error('grafana config is required for publishing');
   }
 
-  const { endpoint, instanceId, apiKey } = config.grafana;
+  const { endpoint, token } = config.grafana;
 
-  if (!instanceId || !apiKey) {
+  if (!token) {
     throw new Error(
-      'grafana instanceId and apiKey are required. Set GRAFANA_INSTANCE_ID and GRAFANA_API_KEY environment variables.'
+      'grafana token is required. Set GRAFANA_API_TOKEN environment variable.'
     );
   }
 
   const body = formatAsOtlpMetrics(results);
   const url = `${endpoint}/v1/metrics`;
-  const auth = Buffer.from(`${instanceId}:${apiKey}`).toString('base64');
 
   log.debug({
     url,
@@ -35,7 +34,7 @@ export async function publishToGrafanaCloud(results, config) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Basic ${auth}`,
+          Authorization: `Basic ${token}`,
         },
         body: JSON.stringify(body),
       });
