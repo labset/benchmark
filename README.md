@@ -9,7 +9,7 @@ API benchmark platform for comparing backend service implementations. Define you
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) for scaffolding implementations
 - A [Grafana Cloud](https://grafana.com/products/cloud/) account (optional, for publishing results)
 
-k6 load tests run inside Docker (`grafana/k6:latest`) — no local k6 installation required.
+k6 load tests run inside Docker (`grafana/k6:1.6.1`) — no local k6 installation required.
 
 ## Setup
 

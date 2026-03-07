@@ -5,7 +5,7 @@ import { readFile, unlink } from 'node:fs/promises';
 import { exec } from '../util/exec.js';
 import { getLogger } from '../util/logger.js';
 
-const K6_IMAGE = 'grafana/k6:latest';
+const K6_IMAGE = 'grafana/k6:1.6.1';
 
 export async function runK6(scriptPath, options = {}) {
   const log = getLogger();
