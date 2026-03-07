@@ -8,16 +8,25 @@ export async function publishToGrafanaCloud(results, config) {
     throw new Error('grafana config is required for publishing');
   }
 
-  const { endpoint, token } = config.grafana;
+  const { endpoint, headers } = config.grafana;
 
-  if (!token) {
+  if (!headers) {
     throw new Error(
-      'grafana token is required. Set GRAFANA_API_TOKEN environment variable.'
+      'grafana headers are required. Set OTEL_EXPORTER_OTLP_HEADERS environment variable.'
     );
   }
 
   const body = formatAsOtlpMetrics(results);
   const url = `${endpoint}/v1/metrics`;
+
+  // Parse OTLP headers format: "Key=Value,Key2=Value2"
+  const parsedHeaders = { 'Content-Type': 'application/json' };
+  for (const entry of headers.split(',')) {
+    const idx = entry.indexOf('=');
+    if (idx > 0) {
+      parsedHeaders[entry.slice(0, idx).trim()] = entry.slice(idx + 1).trim();
+    }
+  }
 
   log.debug({
     url,
@@ -32,10 +41,7 @@ export async function publishToGrafanaCloud(results, config) {
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Basic ${token}`,
-        },
+        headers: parsedHeaders,
         body: JSON.stringify(body),
       });
 

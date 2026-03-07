@@ -41,8 +41,8 @@
     }
   },
   "grafana": {
-    "endpoint": "${GRAFANA_OTLP_ENDPOINT}",
-    "token": "${GRAFANA_API_TOKEN}"
+    "endpoint": "${OTEL_EXPORTER_OTLP_ENDPOINT}",
+    "headers": "${OTEL_EXPORTER_OTLP_HEADERS}"
   },
   "output": {
     "dir": "./results"

@@ -28,14 +28,11 @@ cp .env.example .env
 Then fill in your credentials:
 
 ```env
-GRAFANA_OTLP_ENDPOINT=https://otlp-gateway-prod-us-central-0.grafana.net/otlp
-GRAFANA_API_TOKEN=<base64-encoded token>
+OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp-gateway-prod-us-central-0.grafana.net/otlp
+OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic <token>
 ```
 
-To find these values, sign in to [Grafana Cloud](https://grafana.com), open your stack, and go to **Connections** > **OpenTelemetry (OTLP)**:
-
-1. Copy the **OTLP endpoint** URL
-2. Generate an API token — the page will show `OTEL_EXPORTER_OTLP_HEADERS` containing `Authorization=Basic <token>`. Copy the base64 token value after `Basic `.
+To find these values, sign in to [Grafana Cloud](https://grafana.com), open your stack, and go to **Connections** > **OpenTelemetry (OTLP)**. Generate an API token and copy the two environment variables shown on the page.
 
 These variables are interpolated into `benchmark.config.json` at load time wherever `${VAR_NAME}` syntax is used.
 
@@ -153,8 +150,8 @@ All targets are defined in `benchmark.config.json` at the repo root. Each target
     }
   },
   "grafana": {
-    "endpoint": "${GRAFANA_OTLP_ENDPOINT}",
-    "token": "${GRAFANA_API_TOKEN}"
+    "endpoint": "${OTEL_EXPORTER_OTLP_ENDPOINT}",
+    "headers": "${OTEL_EXPORTER_OTLP_HEADERS}"
   },
   "output": { "dir": "./results" }
 }
@@ -177,10 +174,10 @@ All targets are defined in `benchmark.config.json` at the repo root. Each target
 
 Grafana Cloud credentials are resolved from environment variables at config load time. The toolkit automatically loads a `.env` file from the repository root (see [Setup](#grafana-cloud-optional)).
 
-| Variable               | Description                                                    |
-| ---------------------- | -------------------------------------------------------------- |
-| `GRAFANA_OTLP_ENDPOINT`| Grafana Cloud OTLP gateway URL                                |
-| `GRAFANA_API_TOKEN`    | Base64-encoded token from `OTEL_EXPORTER_OTLP_HEADERS`        |
+| Variable                       | Description                                  |
+| ------------------------------ | -------------------------------------------- |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | Grafana Cloud OTLP gateway URL               |
+| `OTEL_EXPORTER_OTLP_HEADERS`  | Auth header (`Authorization=Basic <token>`)  |
 
 Values in `benchmark.config.json` using `${VAR_NAME}` syntax are interpolated from `process.env`.
 

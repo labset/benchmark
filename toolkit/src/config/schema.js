@@ -33,7 +33,7 @@ const targetSchema = z.object({
 
 const grafanaSchema = z.object({
   endpoint: z.string().url(),
-  token: z.string(),
+  headers: z.string(),
 });
 
 export const configSchema = z.object({
