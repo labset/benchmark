@@ -1078,6 +1078,10 @@ services:
 | protoc-gen-connect-go | v1.19.1 |
 | sqlc | v1.30.0 |
 
+## Post-Generation
+
+After writing all source files, run `go mod tidy` inside the implementation directory to resolve dependencies from the scaffolded imports. This populates `go.mod` with the correct dependency versions and generates `go.sum`.
+
 ## Checklist
 
 Before finishing generation, verify:
@@ -1094,3 +1098,4 @@ Before finishing generation, verify:
 - [ ] Every package exposes interfaces; structs are private implementation details
 - [ ] Different interceptor chains possible per handler via `connect.WithInterceptors()`
 - [ ] The k6 test script expectations are met (set `GRPC_HOST=localhost:8080`)
+- [ ] `go mod tidy` has been run to resolve all dependencies
