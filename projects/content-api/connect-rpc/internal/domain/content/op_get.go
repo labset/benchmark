@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/jackc/pgx/v5"
 
 	sqlccontent "content-api-connect-rpc/gen/sqlc/content"

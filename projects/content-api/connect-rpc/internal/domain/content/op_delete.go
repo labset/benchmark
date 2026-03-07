@@ -3,7 +3,7 @@ package content
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 
 	"content-api-connect-rpc/pkg/outbox"
 )

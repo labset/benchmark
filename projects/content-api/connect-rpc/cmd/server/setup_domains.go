@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 
 	sqlccontent "content-api-connect-rpc/gen/sqlc/content"
 	contentdomain "content-api-connect-rpc/internal/domain/content"
