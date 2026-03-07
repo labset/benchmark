@@ -27,5 +27,8 @@
   },
   "devDependencies": {
     "@anthropic-ai/claude-code": "^2.1.63"
+  },
+  "dependencies": {
+    "dotenv": "^17.3.1"
   }
 }

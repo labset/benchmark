@@ -6,15 +6,35 @@ API benchmark platform for comparing backend service implementations. Define you
 
 - [Node.js](https://nodejs.org/) >= 22
 - [Docker](https://docs.docker.com/get-docker/) with Compose v2
-- [k6](https://grafana.com/docs/k6/latest/set-up/install-k6/) for load testing
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) for scaffolding implementations
 - A [Grafana Cloud](https://grafana.com/products/cloud/) account (optional, for publishing results)
+
+k6 load tests run inside Docker (`grafana/k6:latest`) — no local k6 installation required.
 
 ## Setup
 
 ```bash
 npm install
 ```
+
+### Grafana Cloud (optional)
+
+To publish benchmark results to Grafana Cloud, create a `.env` file at the repository root:
+
+```bash
+cp .env.example .env
+```
+
+Then fill in your credentials:
+
+```env
+GRAFANA_INSTANCE_ID=123456
+GRAFANA_API_KEY=glc_eyJ...
+```
+
+You can find these values in your Grafana Cloud portal under **My Account** > **Grafana Cloud** > **OpenTelemetry (OTLP)**. The instance ID is the numeric identifier and the API key is a Cloud Access Policy token with `metrics:write` scope.
+
+These variables are interpolated into `benchmark.config.json` at load time wherever `${VAR_NAME}` syntax is used.
 
 ## Quick start
 
@@ -153,14 +173,14 @@ All targets are defined in `benchmark.config.json` at the repo root. Each target
 
 ### Environment variables
 
-Grafana Cloud credentials are resolved from environment variables. Create a `.env` file or export them in your shell:
+Grafana Cloud credentials are resolved from environment variables at config load time. The toolkit automatically loads a `.env` file from the repository root (see [Setup](#grafana-cloud-optional)).
 
-```bash
-export GRAFANA_INSTANCE_ID=your-instance-id
-export GRAFANA_API_KEY=your-api-key
-```
+| Variable               | Description                                        |
+| ---------------------- | -------------------------------------------------- |
+| `GRAFANA_INSTANCE_ID`  | Grafana Cloud instance ID (numeric)                |
+| `GRAFANA_API_KEY`      | Cloud Access Policy token with `metrics:write`     |
 
-Values in the config using `${VAR_NAME}` syntax are interpolated from the environment at load time.
+Values in `benchmark.config.json` using `${VAR_NAME}` syntax are interpolated from `process.env`.
 
 ## Commands
 
@@ -265,19 +285,19 @@ Time from `docker compose up -d` until the service health check passes. Health i
 
 ### Load test (k6)
 
-Parsed from k6's `--summary-export` JSON output:
+Parsed from k6's `--summary-export` JSON output. Supports both HTTP (`http_req_duration`) and gRPC (`grpc_req_duration`) protocols:
 
-| Metric                | Description                        |
-| --------------------- | ---------------------------------- |
-| `httpReqs`            | Total HTTP requests                |
-| `httpReqsPerSec`      | Throughput (requests/second)       |
-| `httpReqDuration.avg` | Average response time (ms)         |
-| `httpReqDuration.med` | Median / p50 response time (ms)    |
-| `httpReqDuration.p90` | 90th percentile response time (ms) |
-| `httpReqDuration.p95` | 95th percentile response time (ms) |
-| `httpReqDuration.p99` | 99th percentile response time (ms) |
-| `httpReqFailed`       | Error rate (0.0 - 1.0)             |
-| `checksPassRate`      | k6 check pass rate (0.0 - 1.0)     |
+| Metric             | Description                        |
+| ------------------ | ---------------------------------- |
+| `reqs`             | Total requests (iterations)        |
+| `reqsPerSec`       | Throughput (requests/second)       |
+| `reqDuration.avg`  | Average response time (ms)         |
+| `reqDuration.med`  | Median / p50 response time (ms)    |
+| `reqDuration.p90`  | 90th percentile response time (ms) |
+| `reqDuration.p95`  | 95th percentile response time (ms) |
+| `reqDuration.p99`  | 99th percentile response time (ms) |
+| `reqFailedRate`    | Error rate (0.0 - 1.0)             |
+| `checksPassRate`   | k6 check pass rate (0.0 - 1.0)     |
 
 ## Grafana Cloud publishing
 
@@ -287,9 +307,9 @@ Metrics appear in Grafana with the `benchmark.*` prefix:
 
 - `benchmark.build.duration`
 - `benchmark.deploy.duration`
-- `benchmark.http_reqs_per_sec`
-- `benchmark.http_req.duration.{avg,med,p90,p95,p99}`
-- `benchmark.http_req_failed_rate`
+- `benchmark.reqs_per_sec`
+- `benchmark.req.duration.{avg,med,p90,p95,p99}`
+- `benchmark.req_failed_rate`
 - `benchmark.checks_pass_rate`
 
 ## Custom k6 scripts
