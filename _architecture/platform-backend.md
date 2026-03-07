@@ -91,7 +91,7 @@ OUTBOX/     async event processing, data projections
 
 **Event fan-out**:
 - A single domain event (e.g., `content.created`) can trigger multiple workers (index + audit)
-- Workers run asynchronously within the same process, polling the job table
+- Workers run asynchronously, polling the job table — either in-process or as a separate worker process
 - Job insertion happens within the domain transaction (transactional outbox guarantee)
 
 ## Shared Packages (pkg/)
