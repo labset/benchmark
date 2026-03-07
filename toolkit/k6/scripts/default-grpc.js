@@ -20,7 +20,6 @@ export const options = {
 };
 
 export default function () {
-
   client.connect(GRPC_HOST, { plaintext: true });
 
   const response = client.invoke(`${GRPC_SERVICE}/${GRPC_METHOD}`, {});
