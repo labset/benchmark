@@ -465,7 +465,7 @@ package content
 import (
     "context"
 
-    "github.com/google/uuid"
+    "github.com/gofrs/uuid/v5"
     "github.com/jackc/pgx/v5/pgxpool"
 
     "github.com/jackc/pgx/v5"
@@ -752,7 +752,7 @@ sql:
         overrides:
           - db_type: "uuid"
             go_type:
-              import: "github.com/google/uuid"
+              import: "github.com/gofrs/uuid/v5"
               type: "UUID"
 ```
 
@@ -871,7 +871,7 @@ Wires domain services with their dependencies: sqlc queries, cache, outbox.
 package main
 
 import (
-    "github.com/google/uuid"
+    "github.com/gofrs/uuid/v5"
 
     "pkg/cache"
     contentdomain "<module>/internal/domain/content"
@@ -1071,7 +1071,7 @@ services:
 | github.com/pressly/goose/v3 | latest stable |
 | github.com/rs/zerolog | latest stable |
 | github.com/joho/godotenv | latest stable |
-| github.com/google/uuid | v1.6.0 |
+| github.com/gofrs/uuid/v5 | latest stable |
 | golang.org/x/net | v0.25.0 |
 | buf | v1.66.0 |
 | protoc-gen-go | v1.36.11 |
@@ -1090,7 +1090,7 @@ Before finishing generation, verify:
 - [ ] docker-compose includes postgres, opensearch, and the api service
 - [ ] Single server on :8080 via h2c — `/health` (plain HTTP) and Connect RPC paths (with interceptors)
 - [ ] All env vars consolidated in `pkg/config` with godotenv loading
-- [ ] sqlc uses `sql_package: pgx/v5` and `uuid.UUID` override
+- [ ] sqlc uses `sql_package: pgx/v5` and `gofrs/uuid/v5` override
 - [ ] Every package exposes interfaces; structs are private implementation details
 - [ ] Different interceptor chains possible per handler via `connect.WithInterceptors()`
 - [ ] The k6 test script expectations are met (set `GRPC_HOST=localhost:8080`)
