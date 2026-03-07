@@ -10,7 +10,7 @@ WORKDIR /build
 COPY connect-rpc/buf.gen.yaml ./
 RUN mkdir -p proto/content/v1
 COPY _shared/protobuf/content.proto proto/content/v1/content.proto
-RUN echo 'version: v1' > proto/buf.yaml
+RUN echo 'version: v2' > proto/buf.yaml
 RUN buf generate proto
 
 # Stage 2: Build Go binary

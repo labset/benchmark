@@ -24,6 +24,14 @@ These are used in benchmark tags and guide code generation.
 
 ## Step 5 — Generate the implementation
 
+### Agent delegation
+
+Check if a specialized agent prompt exists at `.claude/agents/<implementation>-<language>.md` (e.g., `.claude/agents/connect-rpc-go.md`). If found, read that file and follow its architecture guide to generate the implementation under `projects/<project>/<implementation>/`. Then skip directly to Step 6.
+
+If no agent prompt exists, fall through to the generic generation instructions below.
+
+### Generic generation (fallback)
+
 Read the API spec and k6 script from `projects/<project>/_shared/<api-style>/` to understand the contract.
 
 Generate the following files under `projects/<project>/<implementation>/`:
