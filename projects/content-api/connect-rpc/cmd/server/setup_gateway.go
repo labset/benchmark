@@ -2,6 +2,7 @@ package main
 
 import (
 	"connectrpc.com/connect"
+	"connectrpc.com/grpcreflect"
 
 	contentv1connect "content-api-connect-rpc/gen/proto/content/v1/contentv1connect"
 	contentapi "content-api-connect-rpc/internal/api/content"
@@ -20,6 +21,12 @@ func setupGateway(cfg *config.Config, domains *Domains) connectapp.App {
 		connect.WithInterceptors(interceptors...),
 	)
 	application.Handle(path, h)
+
+	reflector := grpcreflect.NewStaticReflector(
+		contentv1connect.ContentServiceName,
+	)
+	application.Handle(grpcreflect.NewHandlerV1(reflector))
+	application.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 
 	return application
 }

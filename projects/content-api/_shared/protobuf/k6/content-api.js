@@ -2,17 +2,8 @@ import grpc from 'k6/net/grpc';
 import { check, group, sleep } from 'k6';
 
 const GRPC_HOST = __ENV.GRPC_HOST || 'localhost:8080';
-const PROTO_DIR = __ENV.PROTO_DIR || '';
 
 const client = new grpc.Client();
-
-if (PROTO_DIR) {
-  client.load(
-    [PROTO_DIR],
-    'content/v1/content_service.proto',
-    'content/v1/content_model.proto',
-  );
-}
 
 export const options = {
   thresholds: {
@@ -21,7 +12,7 @@ export const options = {
 };
 
 export default function () {
-  client.connect(GRPC_HOST, { plaintext: true });
+  client.connect(GRPC_HOST, { plaintext: true, reflect: true });
 
   let contentId;
 

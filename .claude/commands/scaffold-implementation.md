@@ -123,7 +123,7 @@ Add a target entry to `benchmark.config.json`:
 
 For protobuf targets, adjust:
 - `protocol`: `"grpc"`
-- `k6.env`: use `GRPC_HOST` (set to `localhost:8080`) and `PROTO_DIR` (e.g., `./projects/<project>/_shared/protobuf`) instead of `BASE_URL`
+- `k6.env`: use `GRPC_HOST` (set to `localhost:8080`) instead of `BASE_URL`
 
 ## Step 7 — Verify
 

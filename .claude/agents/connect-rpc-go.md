@@ -983,6 +983,7 @@ package main
 
 import (
     "connectrpc.com/connect"
+    "connectrpc.com/grpcreflect"
 
     contentv1connect "<module>/gen/proto/content/v1/contentv1connect"
     contentapi "<module>/internal/api/content"
@@ -1001,6 +1002,13 @@ func setupGateway(cfg *config.Config, domains *Domains) connectapp.App {
         connect.WithInterceptors(interceptors...),
     )
     application.Handle(path, h)
+
+    // gRPC server reflection — enables k6 reflect:true and tools like grpcurl
+    reflector := grpcreflect.NewStaticReflector(
+        contentv1connect.ContentServiceName,
+    )
+    application.Handle(grpcreflect.NewHandlerV1(reflector))
+    application.Handle(grpcreflect.NewHandlerV1Alpha(reflector))
 
     return application
 }
@@ -1139,6 +1147,7 @@ services:
 |---|---|
 | Go | 1.25.6 |
 | connectrpc.com/connect | v1.19.1 |
+| connectrpc.com/grpcreflect | latest stable |
 | connectrpc.com/validate | latest stable |
 | google.golang.org/protobuf | v1.36.11 |
 | github.com/jackc/pgx/v5 | latest stable |

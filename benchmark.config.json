@@ -18,8 +18,7 @@
         "vus": 50,
         "duration": "30s",
         "env": {
-          "GRPC_HOST": "localhost:8080",
-          "PROTO_DIR": "./projects/content-api/_shared/protobuf"
+          "GRPC_HOST": "localhost:8080"
         }
       },
       "tags": {
