@@ -7,18 +7,6 @@ info:
   version: 1.0.0
 
 paths:
-  /health:
-    get:
-      operationId: healthCheck
-      summary: Health check endpoint
-      responses:
-        '200':
-          description: Service is healthy
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthResponse'
-
   /api/v1/content:
     get:
       operationId: listContent
@@ -127,14 +115,6 @@ paths:
 
 components:
   schemas:
-    HealthResponse:
-      type: object
-      required: [status]
-      properties:
-        status:
-          type: string
-          enum: [up]
-
     Content:
       type: object
       required: [id, title, body, status, createdAt, updatedAt]

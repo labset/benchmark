@@ -67,21 +67,15 @@ services:
 
 ### Application source code
 - Implement ALL endpoints defined in the API spec
+- Every implementation must register `GET /health` returning `{"status": "up"}` — this is an implementation convention, not part of the API spec
 - For openapi style:
-  - `GET /health` returning `{"status": "up"}`
-  - `GET /api/v1/content` with pagination (limit/offset query params)
-  - `POST /api/v1/content` creating a new content item (return 201)
-  - `GET /api/v1/content/{id}` returning a single item (404 if not found)
-  - `PUT /api/v1/content/{id}` updating an item (404 if not found)
-  - `DELETE /api/v1/content/{id}` deleting an item (return 204, 404 if not found)
+  - Implement all paths from the OpenAPI spec
 - For graphql style:
   - Implement all queries and mutations defined in the schema
   - Serve at `/graphql` endpoint
-  - Also serve `GET /health` returning `{"status": "up"}` for the readiness probe
 - For protobuf style:
   - Implement all RPCs defined in the proto service
-  - Serve on port 50051 for gRPC
-  - Also serve `GET /health` on port 8080 for the readiness probe
+  - Serve on port 8080 using h2c (HTTP/2 cleartext)
 - Use in-memory storage (a simple map/list) unless the user specifically requests a database
 - Generate UUIDs for content IDs
 - Track createdAt and updatedAt timestamps
@@ -129,7 +123,7 @@ Add a target entry to `benchmark.config.json`:
 
 For protobuf targets, adjust:
 - `protocol`: `"grpc"`
-- `k6.env`: use `GRPC_HOST` and `PROTO_PATH` instead of `BASE_URL`
+- `k6.env`: use `GRPC_HOST` (set to `localhost:8080`) and `PROTO_DIR` (e.g., `./projects/<project>/_shared/protobuf`) instead of `BASE_URL`
 
 ## Step 7 — Verify
 

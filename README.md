@@ -20,17 +20,32 @@ npm install
 
 ### 1. Define an API
 
-Create a project under `projects/` with a shared API spec. Each project supports multiple API styles (OpenAPI, GraphQL, Protocol Buffers) and includes k6 load test scripts.
+Use the `/define-api` slash command in Claude Code to create a new API project:
 
 ```
-projects/content-api/
+> /define-api
+
+# Claude will walk you through:
+# 1. Name the project      → user-api
+# 2. Describe the domain   → User entity with name, email, role
+# 3. Pick API styles       → openapi, protobuf, graphql
+# 4. Generate specs + k6   → projects/user-api/_shared/
+```
+
+This creates the shared API specs and k6 load test scripts under `projects/<project>/_shared/`:
+
+```
+projects/user-api/
   _shared/
     openapi/
-      content-api.yaml        # OpenAPI spec
-      k6/content-api.js        # k6 load test script
+      api-spec.yaml            # OpenAPI 3.1 spec
+      k6/user-api.js           # k6 load test script
     protobuf/
-      content.proto            # Protocol Buffers spec
-      k6/content-api.js        # k6 load test script
+      user.proto               # Protocol Buffers service definition
+      k6/user-api.js           # k6 load test script
+    graphql/
+      schema.graphql           # GraphQL schema
+      k6/user-api.js           # k6 load test script
 ```
 
 ### 2. Generate an implementation with Claude Code
@@ -310,6 +325,17 @@ To add one manually:
 ## Claude Code commands
 
 This repo ships with Claude Code slash commands and architecture agents for scaffolding benchmark implementations.
+
+### `/define-api`
+
+Interactive command that walks you through defining a new API project with shared specs and k6 load test scripts:
+
+1. Name the project in kebab-case (e.g., `user-api`, `order-api`)
+2. Describe the domain model (entity, fields, types)
+3. Choose API styles to generate (`openapi`, `graphql`, `protobuf` — pick one or more)
+4. Generate specs and k6 scripts under `projects/<project>/_shared/`
+
+Once defined, use `/scaffold-implementation` to generate implementations for the API.
 
 ### `/scaffold-implementation`
 

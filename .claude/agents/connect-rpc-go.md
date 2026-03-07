@@ -17,7 +17,6 @@ Read the API spec and k6 script from `projects/<project>/_shared/<api-style>/` t
 │   ├── api/<domain>/
 │   │   ├── handler.go
 │   │   ├── mapper.go
-│   │   ├── route_check_health.go
 │   │   ├── route_create_<domain>.go
 │   │   ├── route_get_<domain>.go
 │   │   ├── route_list_<domain>.go
@@ -950,9 +949,8 @@ WORKDIR /build
 
 # buf generate
 COPY <implementation>/buf.gen.yaml ./
-RUN mkdir -p proto/content/v1
-COPY _shared/protobuf/content.proto proto/content/v1/content.proto
-RUN echo 'version: v2' > proto/buf.yaml
+COPY _shared/protobuf/ proto/
+RUN buf dep update proto
 RUN buf generate proto
 
 # sqlc generate
