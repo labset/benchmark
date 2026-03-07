@@ -1,6 +1,5 @@
 import grpc from 'k6/net/grpc';
 import { check, group, sleep } from 'k6';
-import { randomString } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 
 const GRPC_HOST = __ENV.GRPC_HOST || 'localhost:8080';
 const PROTO_DIR = __ENV.PROTO_DIR || '';
@@ -28,8 +27,8 @@ export default function () {
 
   group('create content', () => {
     const res = client.invoke('content.v1.ContentService/CreateContent', {
-      title: `Benchmark ${randomString(8)}`,
-      body: `Load test content body ${randomString(32)}`,
+      title: `Benchmark ${crypto.randomUUID()}`,
+      body: `Load test content body ${crypto.randomUUID()}`,
       status: 'CONTENT_STATUS_DRAFT',
       tags: ['benchmark', 'k6'],
     });
@@ -74,7 +73,7 @@ export default function () {
     const res = client.invoke('content.v1.ContentService/UpdateContent', {
       id: contentId,
       content: {
-        title: `Updated ${randomString(8)}`,
+        title: `Updated ${crypto.randomUUID()}`,
         status: 'CONTENT_STATUS_PUBLISHED',
       },
       updateMask: { paths: ['title', 'status'] },
