@@ -53,6 +53,7 @@ Read the API spec and k6 script from `projects/<project>/_shared/<api-style>/` t
 ├── sqlc.yaml
 ├── buf.gen.yaml
 ├── go.mod
+├── Makefile
 ├── Dockerfile
 └── docker-compose.yml
 ```
@@ -1078,9 +1079,27 @@ services:
 | protoc-gen-connect-go | v1.19.1 |
 | sqlc | v1.30.0 |
 
+## Makefile
+
+Generate a `Makefile` with at least these targets:
+
+```makefile
+.PHONY: codegen tidy
+
+codegen:
+	docker compose --profile codegen run --rm codegen
+
+tidy: codegen
+	go mod tidy
+```
+
 ## Post-Generation
 
-After writing all source files, run `go mod tidy` inside the implementation directory to resolve dependencies from the scaffolded imports. This populates `go.mod` with the correct dependency versions and generates `go.sum`.
+After writing all source files, run `make tidy` inside the implementation directory. This:
+1. Runs `make codegen` — builds the generate Docker stage and copies `gen/` (proto + sqlc) to the host via the codegen compose profile
+2. Runs `go mod tidy` — resolves dependencies from scaffolded imports, populates `go.mod` with correct versions and generates `go.sum`
+
+Both steps are required because `go mod tidy` needs the generated code under `gen/` to resolve imports.
 
 ## Checklist
 
@@ -1098,4 +1117,4 @@ Before finishing generation, verify:
 - [ ] Every package exposes interfaces; structs are private implementation details
 - [ ] Different interceptor chains possible per handler via `connect.WithInterceptors()`
 - [ ] The k6 test script expectations are met (set `GRPC_HOST=localhost:8080`)
-- [ ] `go mod tidy` has been run to resolve all dependencies
+- [ ] `make tidy` has been run (codegen + dependency resolution)
