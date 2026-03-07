@@ -28,12 +28,12 @@ export function compareResults(results) {
 
     if (r.metrics.loadtest) {
       const s = r.metrics.loadtest.summary;
-      row.reqsPerSec = s.httpReqsPerSec;
-      row.avgMs = s.httpReqDuration.avg;
-      row.p90Ms = s.httpReqDuration.p90;
-      row.p95Ms = s.httpReqDuration.p95;
-      row.p99Ms = s.httpReqDuration.p99;
-      row.errorRate = s.httpReqFailed;
+      row.reqsPerSec = s.reqsPerSec;
+      row.avgMs = s.reqDuration.avg;
+      row.p90Ms = s.reqDuration.p90;
+      row.p95Ms = s.reqDuration.p95;
+      row.p99Ms = s.reqDuration.p99;
+      row.errorRate = s.reqFailedRate;
     }
 
     return row;

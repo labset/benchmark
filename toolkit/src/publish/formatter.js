@@ -81,67 +81,67 @@ export function formatAsOtlpMetrics(results) {
     const { summary } = results.metrics.loadtest;
 
     metrics.push(
-      makeGauge('benchmark.http_reqs', '1', summary.httpReqs, timeUnixNano, metricAttributes),
+      makeGauge('benchmark.reqs', '1', summary.reqs, timeUnixNano, metricAttributes),
       makeGauge(
-        'benchmark.http_reqs_per_sec',
+        'benchmark.reqs_per_sec',
         '1/s',
-        summary.httpReqsPerSec,
+        summary.reqsPerSec,
         timeUnixNano,
         metricAttributes
       ),
       makeGauge(
-        'benchmark.http_req_failed_rate',
+        'benchmark.req_failed_rate',
         '1',
-        summary.httpReqFailed,
+        summary.reqFailedRate,
         timeUnixNano,
         metricAttributes
       ),
       makeGauge(
-        'benchmark.http_req.duration.avg',
+        'benchmark.req.duration.avg',
         'ms',
-        summary.httpReqDuration.avg,
+        summary.reqDuration.avg,
         timeUnixNano,
         metricAttributes
       ),
       makeGauge(
-        'benchmark.http_req.duration.min',
+        'benchmark.req.duration.min',
         'ms',
-        summary.httpReqDuration.min,
+        summary.reqDuration.min,
         timeUnixNano,
         metricAttributes
       ),
       makeGauge(
-        'benchmark.http_req.duration.med',
+        'benchmark.req.duration.med',
         'ms',
-        summary.httpReqDuration.med,
+        summary.reqDuration.med,
         timeUnixNano,
         metricAttributes
       ),
       makeGauge(
-        'benchmark.http_req.duration.max',
+        'benchmark.req.duration.max',
         'ms',
-        summary.httpReqDuration.max,
+        summary.reqDuration.max,
         timeUnixNano,
         metricAttributes
       ),
       makeGauge(
-        'benchmark.http_req.duration.p90',
+        'benchmark.req.duration.p90',
         'ms',
-        summary.httpReqDuration.p90,
+        summary.reqDuration.p90,
         timeUnixNano,
         metricAttributes
       ),
       makeGauge(
-        'benchmark.http_req.duration.p95',
+        'benchmark.req.duration.p95',
         'ms',
-        summary.httpReqDuration.p95,
+        summary.reqDuration.p95,
         timeUnixNano,
         metricAttributes
       ),
       makeGauge(
-        'benchmark.http_req.duration.p99',
+        'benchmark.req.duration.p99',
         'ms',
-        summary.httpReqDuration.p99,
+        summary.reqDuration.p99,
         timeUnixNano,
         metricAttributes
       ),

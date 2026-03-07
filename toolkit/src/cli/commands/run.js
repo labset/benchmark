@@ -81,8 +81,8 @@ export function runCommand() {
             summary,
           };
           log.info({
-            reqsPerSec: summary.httpReqsPerSec.toFixed(1),
-            p95: summary.httpReqDuration.p95.toFixed(1),
+            reqsPerSec: summary.reqsPerSec.toFixed(1),
+            p95: summary.reqDuration.p95.toFixed(1),
             msg: 'loadtest completed',
           });
         }

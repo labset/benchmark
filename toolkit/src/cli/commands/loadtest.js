@@ -31,9 +31,9 @@ export function loadtestCommand() {
 
       log.info({
         target: targetName,
-        reqsPerSec: summary.httpReqsPerSec.toFixed(1),
-        p95: summary.httpReqDuration.p95.toFixed(1),
-        errorRate: summary.httpReqFailed.toFixed(4),
+        reqsPerSec: summary.reqsPerSec.toFixed(1),
+        p95: summary.reqDuration.p95.toFixed(1),
+        errorRate: summary.reqFailedRate.toFixed(4),
         msg: 'load test completed',
       });
 
