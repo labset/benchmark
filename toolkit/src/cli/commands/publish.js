@@ -8,18 +8,22 @@ import { getLogger } from '../../util/logger.js';
 export function publishCommand() {
   return new Command('publish')
     .description('publish benchmark results to Grafana Cloud')
-    .argument('<results>', 'path to results JSON file')
-    .action(async (resultsPath, options, command) => {
+    .argument('<results...>', 'path(s) to results JSON file(s)')
+    .action(async (resultsPaths, options, command) => {
       const log = getLogger();
       const globalOpts = command.parent.opts();
       const config = await loadConfig(globalOpts.config);
 
-      const absolutePath = resolve(resultsPath);
-      const content = await readFile(absolutePath, 'utf-8');
-      const results = JSON.parse(content);
+      for (const resultsPath of resultsPaths) {
+        const absolutePath = resolve(resultsPath);
+        const content = await readFile(absolutePath, 'utf-8');
+        const results = JSON.parse(content);
 
-      log.info({ file: absolutePath, target: results.target, msg: 'publishing results' });
-      await publishToGrafanaCloud(results, config);
-      log.info({ msg: 'publish completed' });
+        log.info({ file: absolutePath, target: results.target, msg: 'publishing results' });
+        await publishToGrafanaCloud(results, config);
+        log.info({ target: results.target, msg: 'published' });
+      }
+
+      log.info({ count: resultsPaths.length, msg: 'publish completed' });
     });
 }

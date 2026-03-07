@@ -231,12 +231,16 @@ npm run benchmark -- loadtest my-api
 npm run benchmark -- loadtest my-api --k6-vus 100 --k6-duration 1m
 ```
 
-### `benchmark publish <results>`
+### `benchmark publish <results...>`
 
-Publishes a results JSON file to Grafana Cloud.
+Publishes one or more results JSON files to Grafana Cloud. Accepts multiple files so you can batch-publish results from previous runs.
 
 ```bash
+# publish a single result
 npm run benchmark -- publish results/my-api-2026-03-04T12-00-00-000Z.json
+
+# publish multiple results at once
+npm run benchmark -- publish results/connect-rpc-*.json results/spring-boot-*.json
 ```
 
 ### `benchmark compare <targets...>`
