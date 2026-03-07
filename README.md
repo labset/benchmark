@@ -32,7 +32,7 @@ GRAFANA_INSTANCE_ID=123456
 GRAFANA_API_KEY=glc_eyJ...
 ```
 
-You can find these values in your Grafana Cloud portal under **My Account** > **Grafana Cloud** > **OpenTelemetry (OTLP)**. The instance ID is the numeric identifier and the API key is a Cloud Access Policy token with `metrics:write` scope.
+To find these values, sign in to [Grafana Cloud](https://grafana.com), open your stack, and go to **Connections** > **OpenTelemetry (OTLP)**. The instance ID is the numeric identifier shown on the configuration page. For the API key, click **Generate now** to create a Cloud Access Policy token with `metrics:write` scope.
 
 These variables are interpolated into `benchmark.config.json` at load time wherever `${VAR_NAME}` syntax is used.
 
