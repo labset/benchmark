@@ -64,6 +64,7 @@ Read the API spec and k6 script from `projects/<project>/_shared/<api-style>/` t
 - **Dependencies struct**: each layer defines an exported `Dependencies` struct listing its injected dependencies. Constructors take `Dependencies` as the single parameter. The private struct inlines the dependencies directly (not `deps Dependencies`) — the `Dependencies` struct is only for the public constructor signature.
 - **File prefixes**: `route_<rpc>.go` in API, `op_<operation>.go` in domain, `event_<name>.go` in outbox.
 - **Single server**: one h2c server on `:8080` serves `/health` (no interceptors) and Connect RPC paths (with per-handler interceptors via `connect.WithInterceptors`).
+- **No unused imports**: every import in every file must be used. Only import a package in files that directly reference it — do not import packages just because sibling files in the same Go package use them. Run `go vet ./...` after generation to catch issues.
 
 ## Layer Rules
 
@@ -223,7 +224,7 @@ import (
 )
 
 func NewInterceptors() []connect.Interceptor {
-    validateInterceptor, _ := validate.NewInterceptor()
+    validateInterceptor := validate.NewInterceptor()
     return []connect.Interceptor{
         NewRecoveryInterceptor(),
         NewLoggingInterceptor(),
@@ -401,7 +402,7 @@ type handler struct {
 
 ### mapper.go
 
-Mapping functions between proto types (`gen/proto/`) and sqlc models (`gen/sqlc/`).
+Mapping functions between proto types (`gen/proto/`) and sqlc models (`gen/sqlc/`). For update params, sqlc generates `pgtype.Text` / `pgtype.Int4` for nullable fields (from `sqlc.narg()`), NOT pointer types.
 
 ```go
 package content
@@ -409,7 +410,9 @@ package content
 // toProto maps a sqlc model to a proto response message
 // fromProtoCreate maps a proto create request to sqlc create params
 // fromProtoUpdate maps a proto update request to sqlc update params
-// statusToProto / statusFromProto for enum mapping
+//   - uses pgtype.Text{String: val, Valid: true} for nullable string fields
+//   - uses pgtype.Int4{Int32: val, Valid: true} for nullable int fields
+//   - only sets Valid: true for fields in the update mask
 ```
 
 ### route_*.go — One file per RPC
@@ -759,7 +762,31 @@ sql:
 
 ## buf.gen.yaml
 
-Already uses buf v2 config. The existing `buf.gen.yaml` in the project handles proto + connect code generation to `gen/proto/`. No changes needed — just ensure the module's `go_package_prefix` value matches the Go module name.
+Uses buf v2 config with managed mode to rewrite `go_package` imports to match the Go module path. Without managed mode, generated connect code imports the raw proto `go_package` (e.g., `content/v1`) which won't resolve.
+
+```yaml
+version: v2
+managed:
+  enabled: true
+  disable:
+    - file_option: go_package
+      module: buf.build/bufbuild/protovalidate
+  override:
+    - file_option: go_package_prefix
+      value: <module>/gen/proto
+plugins:
+  - protoc_builtin: go
+    out: gen/proto
+    opt: paths=source_relative
+  - remote: buf.build/connectrpc/go
+    out: gen/proto
+    opt: paths=source_relative
+```
+
+Key points:
+- `go_package_prefix` rewrites proto `go_package` to `<module>/gen/proto/<proto_path>` so Go imports resolve correctly
+- `disable` for `buf.build/bufbuild/protovalidate` prevents rewriting third-party dep go_packages
+- Replace `<module>` with the actual Go module name
 
 ## cmd/server/ — App Wiring
 
@@ -780,12 +807,12 @@ package main
 
 import (
     "context"
-    "log"
     "os/signal"
     "syscall"
 
+    "github.com/rs/zerolog/log"
+
     "pkg/config"
-    "pkg/connectapp"
 )
 
 func main() {
@@ -799,7 +826,9 @@ func main() {
     domains := setupDomains(connections)
     application := setupGateway(cfg, domains)
 
-    log.Fatal(application.Run(ctx))
+    if err := application.Run(ctx); err != nil {
+        log.Fatal().Err(err).Msg("server error")
+    }
 }
 ```
 

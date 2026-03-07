@@ -1,6 +1,7 @@
 package content
 
 import (
+	"github.com/jackc/pgx/v5/pgtype"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	contentv1 "content-api-connect-rpc/gen/proto/content/v1"
@@ -36,12 +37,11 @@ func fromProtoUpdate(msg *contentv1.UpdateContentRequest) sqlccontent.UpdateCont
 	for _, path := range msg.UpdateMask.Paths {
 		switch path {
 		case "title":
-			params.Title = &msg.Content.Title
+			params.Title = pgtype.Text{String: msg.Content.Title, Valid: true}
 		case "body":
-			params.Body = &msg.Content.Body
+			params.Body = pgtype.Text{String: msg.Content.Body, Valid: true}
 		case "status":
-			s := int32(msg.Content.Status)
-			params.Status = &s
+			params.Status = pgtype.Int4{Int32: int32(msg.Content.Status), Valid: true}
 		case "tags":
 			params.Tags = msg.Content.Tags
 		}

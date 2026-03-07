@@ -11,7 +11,7 @@ import (
 )
 
 func NewInterceptors() []connect.Interceptor {
-	validateInterceptor, _ := validate.NewInterceptor()
+	validateInterceptor := validate.NewInterceptor()
 	return []connect.Interceptor{
 		NewRecoveryInterceptor(),
 		NewLoggingInterceptor(),

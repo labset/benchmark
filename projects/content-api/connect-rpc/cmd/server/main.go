@@ -8,7 +8,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"content-api-connect-rpc/pkg/config"
-	"content-api-connect-rpc/pkg/connectapp"
 )
 
 func main() {
