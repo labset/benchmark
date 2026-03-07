@@ -1,11 +1,11 @@
 # Stage 1: Generate proto + sqlc code
-FROM golang:1.24-alpine AS generate
+FROM golang:1.25.6-alpine AS generate
 
 RUN apk add --no-cache git
-RUN go install github.com/bufbuild/buf/cmd/buf@v1.50.0
+RUN go install github.com/bufbuild/buf/cmd/buf@v1.66.0
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 RUN go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
-RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.28.0
+RUN go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.30.0
 
 WORKDIR /build
 
@@ -21,7 +21,7 @@ COPY connect-rpc/sql ./sql
 RUN sqlc generate
 
 # Stage 2: Build
-FROM golang:1.24-alpine AS builder
+FROM golang:1.25.6-alpine AS builder
 
 WORKDIR /app
 COPY connect-rpc/ .
@@ -30,7 +30,7 @@ RUN go mod tidy
 RUN CGO_ENABLED=0 go build -o /server ./cmd/server
 
 # Stage 3: Runtime
-FROM alpine:3.21
+FROM alpine:3.20
 
 RUN apk add --no-cache curl
 COPY --from=builder /server /server

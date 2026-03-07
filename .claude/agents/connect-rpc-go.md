@@ -33,9 +33,8 @@ Read the API spec and k6 script from `projects/<project>/_shared/<api-style>/` t
 │   └── outbox/
 │       ├── river.go                            # River implementation of pkg/outbox.Outbox
 │       └── <domain>/
-│           ├── event_created.go                # River worker + job args
-│           ├── event_updated.go
-│           └── event_deleted.go
+│           ├── event_index.go                  # River worker + job args (indexing concern)
+│           └── event_audit.go                  # River worker + job args (auditing concern)
 ├── pkg/
 │   ├── config/config.go                       # Env-based config loaded via godotenv
 │   ├── connectapp/app.go
@@ -48,7 +47,9 @@ Read the API spec and k6 script from `projects/<project>/_shared/<api-style>/` t
 │   ├── proto/                              # buf-generated (proto + connect)
 │   └── sqlc/<domain>/                      # sqlc-generated (per-domain)
 ├── sql/
-│   ├── migrations/001_create_<domain>.sql
+│   ├── migrations/
+│   │   ├── migrations.go                      # go:embed for .sql files
+│   │   └── 001_create_<domain>.sql
 │   └── queries/<domain>/<domain>.sql
 ├── sqlc.yaml
 ├── buf.gen.yaml
@@ -219,7 +220,6 @@ import (
 
     "connectrpc.com/connect"
     "connectrpc.com/validate"
-    "github.com/rs/zerolog"
     "github.com/rs/zerolog/log"
 )
 
@@ -337,8 +337,9 @@ import "context"
 
 // Event represents a domain event to be processed asynchronously.
 type Event struct {
-    Type    string
-    Payload any
+    Type string
+    ID   string
+    Data any
 }
 
 // Outbox emits domain events within a transaction.
@@ -381,13 +382,15 @@ Private struct implementing the generated Connect service interface. Constructor
 package content
 
 import (
-    "internal/domain/content"
-    contentv1connect "gen/proto/content/v1/contentv1connect"
+    "connectrpc.com/connect"
+
+    contentv1connect "<module>/gen/proto/content/v1/contentv1connect"
+    contentdomain "<module>/internal/domain/content"
 )
 
 // Dependencies defines the dependencies for the content API handler.
 type Dependencies struct {
-    Service content.Service
+    Service contentdomain.Service
 }
 
 // New returns the Connect-generated interface. Struct is private.
@@ -396,7 +399,12 @@ func New(deps Dependencies) contentv1connect.ContentServiceHandler {
 }
 
 type handler struct {
-    service content.Service
+    service contentdomain.Service
+}
+
+var errorMappings = map[error]connect.Code{
+    contentdomain.ErrNotFound:      connect.CodeNotFound,
+    contentdomain.ErrAlreadyExists: connect.CodeAlreadyExists,
 }
 ```
 
@@ -424,23 +432,18 @@ Each file contains a single method on the Handler struct:
 func (h *handler) CreateContent(
     ctx context.Context,
     req *connect.Request[contentv1.CreateContentRequest],
-) (*connect.Response[contentv1.Content], error) {
+) (*connect.Response[contentv1.CreateContentResponse], error) {
     result, err := h.service.Create(ctx, fromProtoCreate(req.Msg))
     if err != nil {
         return nil, connectutil.NewErrorFrom(err, errorMappings)
     }
-    return connect.NewResponse(toProto(result)), nil
+    return connect.NewResponse(&contentv1.CreateContentResponse{
+        Content: toProto(result),
+    }), nil
 }
 ```
 
-Error mappings defined as a package-level var:
-
-```go
-var errorMappings = map[error]connect.Code{
-    content.ErrNotFound:      connect.CodeNotFound,
-    content.ErrAlreadyExists: connect.CodeAlreadyExists,
-}
-```
+Error mappings are defined as a package-level var in `handler.go` (see above).
 
 ## internal/domain/ — Domain Layer
 
@@ -470,20 +473,19 @@ import (
     "context"
 
     "github.com/gofrs/uuid/v5"
+    "github.com/jackc/pgx/v5"
     "github.com/jackc/pgx/v5/pgxpool"
 
-    "github.com/jackc/pgx/v5"
-
-    "pkg/cache"
-    "pkg/outbox"
-    sqlccontent "gen/sqlc/content"
+    sqlccontent "<module>/gen/sqlc/content"
+    "<module>/pkg/cache"
+    "<module>/pkg/outbox"
 )
 
 // Service is the public interface for the content domain.
 type Service interface {
     Create(ctx context.Context, params sqlccontent.CreateContentParams) (*sqlccontent.Content, error)
     Get(ctx context.Context, id uuid.UUID) (*sqlccontent.Content, error)
-    List(ctx context.Context, limit, offset int32) ([]sqlccontent.Content, int64, error)
+    List(ctx context.Context, pageSize int32, pageToken string) ([]sqlccontent.Content, string, error)
     Update(ctx context.Context, id uuid.UUID, params sqlccontent.UpdateContentParams) (*sqlccontent.Content, error)
     Delete(ctx context.Context, id uuid.UUID) error
 }
@@ -531,7 +533,7 @@ func (s *service) Create(ctx context.Context, params sqlccontent.CreateContentPa
         return nil, err
     }
 
-    if err := s.outbox.Emit(ctx, tx, outbox.Event{Type: "content.created", Payload: item}); err != nil {
+    if err := s.outbox.Emit(ctx, tx, outbox.Event{Type: "content.created", ID: item.ID.String(), Data: item}); err != nil {
         return nil, err
     }
 
@@ -554,7 +556,10 @@ func (s *service) Get(ctx context.Context, id uuid.UUID) (*sqlccontent.Content, 
     }
     item, err := s.queries.GetContent(ctx, id)
     if err != nil {
-        return nil, ErrNotFound
+        if errors.Is(err, pgx.ErrNoRows) {
+            return nil, ErrNotFound
+        }
+        return nil, err
     }
     s.cache.Set(id, &item, 0)
     return &item, nil
@@ -577,8 +582,8 @@ import (
     "github.com/jackc/pgx/v5"
     "github.com/riverqueue/river"
 
-    "pkg/outbox"
     contentevents "<module>/internal/outbox/content"
+    "<module>/pkg/outbox"
 )
 
 func NewRiverOutbox(client *river.Client[pgx.Tx]) outbox.Outbox[pgx.Tx] {
@@ -627,18 +632,20 @@ func (o *riverOutbox) mapEvent(event outbox.Event) ([]river.JobArgs, error) {
 }
 ```
 
-### event_*.go — One file per event type
+### event_*.go — One file per concern
 
 Each file contains river `JobArgs` + `Worker` for a specific concern (index, audit, analytics).
 
 ```go
-// event_created.go — indexing concern
+// event_index.go — indexing concern
 package content
 
 import (
     "context"
+
     "github.com/riverqueue/river"
-    "pkg/outbox"
+
+    "<module>/pkg/outbox"
 )
 
 type IndexArgs struct {
@@ -649,17 +656,15 @@ type IndexArgs struct {
 func (IndexArgs) Kind() string { return "content.index" }
 
 func NewIndexArgs(event outbox.Event) *IndexArgs {
-    // extract ID from event payload
-    return &IndexArgs{ID: "...", Type: event.Type}
+    return &IndexArgs{ID: event.ID, Type: event.Type}
 }
 
 type IndexWorker struct {
     river.WorkerDefaults[IndexArgs]
-    // opensearch client injected here
 }
 
 func (w *IndexWorker) Work(ctx context.Context, job *river.Job[IndexArgs]) error {
-    // index/update/delete content in OpenSearch based on job.Args.Type
+    // TODO: index/update/delete content in OpenSearch based on job.Args.Type
     return nil
 }
 ```
@@ -668,6 +673,14 @@ func (w *IndexWorker) Work(ctx context.Context, job *river.Job[IndexArgs]) error
 // event_audit.go — auditing concern
 package content
 
+import (
+    "context"
+
+    "github.com/riverqueue/river"
+
+    "<module>/pkg/outbox"
+)
+
 type AuditArgs struct {
     ID     string `json:"id"`
     Action string `json:"action"`
@@ -675,14 +688,16 @@ type AuditArgs struct {
 
 func (AuditArgs) Kind() string { return "content.audit" }
 
-func NewAuditArgs(event outbox.Event) *AuditArgs { ... }
+func NewAuditArgs(event outbox.Event) *AuditArgs {
+    return &AuditArgs{ID: event.ID, Action: event.Type}
+}
 
 type AuditWorker struct {
     river.WorkerDefaults[AuditArgs]
 }
 
 func (w *AuditWorker) Work(ctx context.Context, job *river.Job[AuditArgs]) error {
-    // write audit trail
+    // TODO: write audit trail
     return nil
 }
 ```
@@ -734,7 +749,7 @@ SET title = COALESCE(sqlc.narg('title'), title),
 WHERE id = sqlc.arg('id')
 RETURNING *;
 
--- name: DeleteContent :exec
+-- name: DeleteContent :execrows
 DELETE FROM content WHERE id = sqlc.arg('id');
 ```
 
@@ -758,6 +773,10 @@ sql:
             go_type:
               import: "github.com/gofrs/uuid/v5"
               type: "UUID"
+          - db_type: "timestamptz"
+            go_type:
+              import: "time"
+              type: "Time"
 ```
 
 ## buf.gen.yaml
@@ -812,14 +831,18 @@ import (
 
     "github.com/rs/zerolog/log"
 
-    "pkg/config"
+    "<module>/pkg/config"
 )
 
 func main() {
     ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
     defer cancel()
 
-    cfg, _ := config.Load()
+    cfg, err := config.Load()
+    if err != nil {
+        log.Fatal().Err(err).Msg("failed to load config")
+    }
+
     connections := setupConnections(ctx, cfg)
     defer connections.Close(ctx)
 
@@ -842,20 +865,21 @@ package main
 import (
     "context"
     "database/sql"
-    "embed"
 
+    "github.com/jackc/pgx/v5"
     "github.com/jackc/pgx/v5/pgxpool"
     "github.com/riverqueue/river"
     "github.com/riverqueue/river/riverdriver/riverpgxv5"
     "github.com/riverqueue/river/rivermigrate"
+    "github.com/rs/zerolog/log"
 
-    "pkg/config"
-    "pkg/migrate"
+    _ "github.com/jackc/pgx/v5/stdlib"
+
     outboxcontent "<module>/internal/outbox/content"
+    "<module>/pkg/config"
+    "<module>/pkg/migrate"
+    migrations "<module>/sql/migrations"
 )
-
-//go:embed sql/migrations/*.sql
-var migrations embed.FS
 
 type Connections struct {
     Pool        *pgxpool.Pool
@@ -863,31 +887,52 @@ type Connections struct {
 }
 
 func (c *Connections) Close(ctx context.Context) {
-    c.RiverClient.Stop(ctx)
+    if err := c.RiverClient.Stop(ctx); err != nil {
+        log.Error().Err(err).Msg("failed to stop river client")
+    }
     c.Pool.Close()
 }
 
 func setupConnections(ctx context.Context, cfg *config.Config) *Connections {
-    pool, _ := pgxpool.New(ctx, cfg.DatabaseURL)
+    pool, err := pgxpool.New(ctx, cfg.DatabaseURL)
+    if err != nil {
+        log.Fatal().Err(err).Msg("failed to connect to database")
+    }
 
-    // River migrations (independent)
-    riverMigrator, _ := rivermigrate.New(riverpgxv5.New(pool), nil)
-    riverMigrator.Migrate(ctx, rivermigrate.DirectionUp, nil)
+    // River migrations
+    riverMigrator, err := rivermigrate.New(riverpgxv5.New(pool), nil)
+    if err != nil {
+        log.Fatal().Err(err).Msg("failed to create river migrator")
+    }
+    if _, err := riverMigrator.Migrate(ctx, rivermigrate.DirectionUp, nil); err != nil {
+        log.Fatal().Err(err).Msg("failed to run river migrations")
+    }
 
     // Domain migrations (goose)
-    stdDB, _ := sql.Open("pgx", cfg.DatabaseURL)
-    migrate.Run(stdDB, migrations, "sql/migrations")
+    stdDB, err := sql.Open("pgx", cfg.DatabaseURL)
+    if err != nil {
+        log.Fatal().Err(err).Msg("failed to open sql connection")
+    }
+    if err := migrate.Run(stdDB, migrations.FS, "."); err != nil {
+        log.Fatal().Err(err).Msg("failed to run domain migrations")
+    }
     stdDB.Close()
 
     // River client + workers
     workers := river.NewWorkers()
     river.AddWorker(workers, &outboxcontent.IndexWorker{})
     river.AddWorker(workers, &outboxcontent.AuditWorker{})
-    riverClient, _ := river.NewClient(riverpgxv5.New(pool), &river.Config{
+
+    riverClient, err := river.NewClient(riverpgxv5.New(pool), &river.Config{
         Queues:  map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 100}},
         Workers: workers,
     })
-    riverClient.Start(ctx)
+    if err != nil {
+        log.Fatal().Err(err).Msg("failed to create river client")
+    }
+    if err := riverClient.Start(ctx); err != nil {
+        log.Fatal().Err(err).Msg("failed to start river client")
+    }
 
     return &Connections{Pool: pool, RiverClient: riverClient}
 }
@@ -903,10 +948,10 @@ package main
 import (
     "github.com/gofrs/uuid/v5"
 
-    "pkg/cache"
+    sqlccontent "<module>/gen/sqlc/content"
     contentdomain "<module>/internal/domain/content"
     internaloutbox "<module>/internal/outbox"
-    sqlccontent "<module>/gen/sqlc/content"
+    "<module>/pkg/cache"
 )
 
 type Domains struct {
@@ -939,11 +984,11 @@ package main
 import (
     "connectrpc.com/connect"
 
-    "pkg/config"
-    "pkg/connectapp"
-    "pkg/connectutil"
-    contentapi "<module>/internal/api/content"
     contentv1connect "<module>/gen/proto/content/v1/contentv1connect"
+    contentapi "<module>/internal/api/content"
+    "<module>/pkg/config"
+    "<module>/pkg/connectapp"
+    "<module>/pkg/connectutil"
 )
 
 func setupGateway(cfg *config.Config, domains *Domains) connectapp.App {
