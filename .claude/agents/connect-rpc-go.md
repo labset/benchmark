@@ -1110,25 +1110,62 @@ services:
 
 ## Makefile
 
-Generate a `Makefile` with at least these targets:
+Generate a `Makefile` with these targets:
 
 ```makefile
-.PHONY: codegen tidy
+.PHONY: codegen tidy vet build test start stop clean
+
+# --- codegen ---
 
 codegen:
 	docker compose --profile codegen run --rm codegen
 
 tidy: codegen
 	go mod tidy
+
+# --- checks ---
+
+vet: tidy
+	go vet ./...
+
+build: vet
+	docker compose build api
+
+test: vet
+	go test ./...
+
+# --- run ---
+
+start:
+	docker compose up -d
+	@echo "waiting for api to be healthy..."
+	@until curl -sf http://localhost:8080/health > /dev/null 2>&1; do sleep 1; done
+	@echo "api is up"
+
+stop:
+	docker compose down
+
+# --- cleanup ---
+
+clean:
+	docker compose down -v
+	rm -rf gen/
 ```
 
-## Post-Generation
+## Post-Generation Devloop
 
-After writing all source files, run `make tidy` inside the implementation directory. This:
-1. Runs `make codegen` — builds the generate Docker stage and copies `gen/` (proto + sqlc) to the host via the codegen compose profile
-2. Runs `go mod tidy` — resolves dependencies from scaffolded imports, populates `go.mod` with correct versions and generates `go.sum`
+After writing all source files, run through these steps in order. Fix any errors before proceeding to the next step.
 
-Both steps are required because `go mod tidy` needs the generated code under `gen/` to resolve imports.
+1. **`make vet`** — generates code (codegen), resolves dependencies (tidy), then runs `go vet ./...` to catch unused imports, type mismatches, and compilation errors. Fix all issues before continuing.
+2. **`make build`** — builds the Docker image end-to-end (generate → compile → runtime). Confirms the full build pipeline works.
+3. **`make start`** — starts all services (postgres, opensearch, api) and waits for the health check. Confirms the server boots and migrations run.
+4. **`make stop`** — tears down services after verification.
+
+If `make vet` fails, read the errors carefully — common issues:
+- Unused imports: remove them (only import packages directly referenced in the file)
+- `pgtype.Text` / `pgtype.Int4`: sqlc generates these for `sqlc.narg()` nullable params, NOT `*string` / `*int32`
+- Wrong return count: check the actual signature of third-party functions (e.g., `validate.NewInterceptor()` returns 1 value)
+- Proto import paths: ensure buf.gen.yaml managed mode `go_package_prefix` is set to `<module>/gen/proto`
 
 ## Checklist
 
@@ -1138,12 +1175,12 @@ Before finishing generation, verify:
 - [ ] Each outbox event has its own `event_*.go` file
 - [ ] sqlc queries cover all CRUD operations
 - [ ] Migration creates the correct table schema
-- [ ] Dockerfile builds successfully with both buf and sqlc generation
 - [ ] docker-compose includes postgres, opensearch, and the api service
 - [ ] Single server on :8080 via h2c — `/health` (plain HTTP) and Connect RPC paths (with interceptors)
 - [ ] All env vars consolidated in `pkg/config` with godotenv loading
 - [ ] sqlc uses `sql_package: pgx/v5` and `gofrs/uuid/v5` override
+- [ ] buf.gen.yaml uses managed mode with `go_package_prefix` and disables for deps
 - [ ] Every package exposes interfaces; structs are private implementation details
-- [ ] Different interceptor chains possible per handler via `connect.WithInterceptors()`
-- [ ] The k6 test script expectations are met (set `GRPC_HOST=localhost:8080`)
-- [ ] `make tidy` has been run (codegen + dependency resolution)
+- [ ] `make vet` passes with no errors
+- [ ] `make build` succeeds
+- [ ] `make start` boots and health check passes
