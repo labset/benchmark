@@ -40,10 +40,6 @@
       "timeoutMs": 120000
     }
   },
-  "grafana": {
-    "endpoint": "${OTEL_EXPORTER_OTLP_ENDPOINT}",
-    "headers": "${OTEL_EXPORTER_OTLP_HEADERS}"
-  },
   "output": {
     "dir": "./results"
   }

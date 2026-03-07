@@ -31,11 +31,6 @@ const targetSchema = z.object({
   tags: z.record(z.string()).default({}),
 });
 
-const grafanaSchema = z.object({
-  endpoint: z.string().url(),
-  headers: z.string(),
-});
-
 export const configSchema = z.object({
   targets: z.record(targetSchema),
   defaults: z
@@ -44,7 +39,6 @@ export const configSchema = z.object({
       readinessProbe: readinessProbeSchema.partial().default({}),
     })
     .default({}),
-  grafana: grafanaSchema.optional(),
   output: z
     .object({
       dir: z.string().default('./results'),

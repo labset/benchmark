@@ -101,9 +101,8 @@ export function runCommand() {
 
         // --- Publish (if requested) ---
         if (options.publish) {
-          const { publishToGrafanaCloud } = await import('../../publish/grafana-cloud.js');
-          await publishToGrafanaCloud(results, config);
-          log.info({ msg: 'results published to Grafana Cloud' });
+          const { publishResults } = await import('../../publish/otlp.js');
+          await publishResults(results);
         }
       } finally {
         // --- Cleanup (only if deploy was attempted) ---
