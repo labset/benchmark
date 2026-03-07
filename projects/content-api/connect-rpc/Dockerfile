@@ -2,9 +2,9 @@
 FROM golang:1.25.6-alpine AS generate
 
 RUN apk add --no-cache git
-RUN go install github.com/bufbuild/buf/cmd/buf@latest
-RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-RUN go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
+RUN go install github.com/bufbuild/buf/cmd/buf@v1.66.0
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
+RUN go install connectrpc.com/connect/cmd/protoc-gen-connect-go@v1.19.1
 
 WORKDIR /build
 COPY connect-rpc/buf.gen.yaml ./
