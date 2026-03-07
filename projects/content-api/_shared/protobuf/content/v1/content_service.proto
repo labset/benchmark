@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package content.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/field_mask.proto";
+import "content/v1/content_model.proto";
+
+option go_package = "content/v1;contentv1";
+option java_multiple_files = true;
+option java_package = "com.labset.benchmark.content.v1";
+option csharp_namespace = "Labset.Benchmark.Content.V1";
+
+service ContentService {
+  rpc CreateContent(CreateContentRequest) returns (CreateContentResponse);
+  rpc GetContent(GetContentRequest) returns (GetContentResponse);
+  rpc ListContent(ListContentRequest) returns (ListContentResponse);
+  rpc UpdateContent(UpdateContentRequest) returns (UpdateContentResponse);
+  rpc DeleteContent(DeleteContentRequest) returns (DeleteContentResponse);
+}
+
+// Create
+
+message CreateContentRequest {
+  string title = 1 [(buf.validate.field).string = {min_len: 1, max_len: 255}];
+  string body = 2 [(buf.validate.field).string.min_len = 1];
+  ContentStatus status = 3 [(buf.validate.field).enum = {defined_only: true, not_in: [0]}];
+  repeated string tags = 4;
+}
+
+message CreateContentResponse {
+  Content content = 1;
+}
+
+// Get
+
+message GetContentRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message GetContentResponse {
+  Content content = 1;
+}
+
+// List
+
+message ListContentRequest {
+  int32 page_size = 1 [(buf.validate.field).int32 = {gte: 1, lte: 100}];
+  string page_token = 2;
+}
+
+message ListContentResponse {
+  repeated Content items = 1;
+  string next_page_token = 2;
+}
+
+// Update
+
+message UpdateContentRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  Content content = 2 [(buf.validate.field).required = true];
+  google.protobuf.FieldMask update_mask = 3 [(buf.validate.field).required = true];
+}
+
+message UpdateContentResponse {
+  Content content = 1;
+}
+
+// Delete
+
+message DeleteContentRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message DeleteContentResponse {
+  bool success = 1;
+}

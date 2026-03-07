@@ -1,0 +1,23 @@
+name: content-api/connect-rpc
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "projects/content-api/connect-rpc/**"
+      - "projects/content-api/_shared/protobuf/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "projects/content-api/connect-rpc/**"
+      - "projects/content-api/_shared/protobuf/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build Docker image
+        working-directory: projects/content-api
+        run: docker build -f connect-rpc/Dockerfile .
