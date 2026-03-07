@@ -67,7 +67,7 @@ export default function () {
         title: `Updated ${crypto.randomUUID()}`,
         status: 'CONTENT_STATUS_PUBLISHED',
       },
-      updateMask: { paths: ['title', 'status'] },
+      updateMask: 'title,status',
     });
 
     check(res, {
