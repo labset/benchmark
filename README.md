@@ -1,13 +1,14 @@
 # benchmark
 
-API benchmark platform for comparing backend service implementations. Measures build time, deploy time, and load test performance across different tech stacks, then publishes results to Grafana Cloud for comparison.
+API benchmark platform for comparing backend service implementations. Define your APIs, generate implementations across different tech stacks using Claude Code, then measure and compare their performance.
 
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) >= 22
 - [Docker](https://docs.docker.com/get-docker/) with Compose v2
 - [k6](https://grafana.com/docs/k6/latest/set-up/install-k6/) for load testing
-- A [Grafana Cloud](https://grafana.com/products/cloud/) account (for publishing results)
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) for scaffolding implementations
+- A [Grafana Cloud](https://grafana.com/products/cloud/) account (optional, for publishing results)
 
 ## Setup
 
@@ -17,18 +18,55 @@ npm install
 
 ## Quick start
 
+### 1. Define an API
+
+Create a project under `projects/` with a shared API spec. Each project supports multiple API styles (OpenAPI, GraphQL, Protocol Buffers) and includes k6 load test scripts.
+
+```
+projects/content-api/
+  _shared/
+    openapi/
+      content-api.yaml        # OpenAPI spec
+      k6/content-api.js        # k6 load test script
+    protobuf/
+      content.proto            # Protocol Buffers spec
+      k6/content-api.js        # k6 load test script
+```
+
+### 2. Generate an implementation with Claude Code
+
+Use the `/scaffold-implementation` slash command in Claude Code to generate a complete implementation for any tech stack:
+
+```
+> /scaffold-implementation
+
+# Claude will walk you through:
+# 1. Pick a project        → content-api
+# 2. Pick an API style     → protobuf
+# 3. Name it               → connect-rpc
+# 4. Language + framework  → go + connect-rpc
+# 5. Generate everything   → Dockerfile, docker-compose, source code, build files
+# 6. Register the target   → benchmark.config.json updated
+```
+
+Repeat for as many stacks as you want to compare (e.g., `spring-boot` in Java, `express` in TypeScript, `ktor` in Kotlin).
+
+### 3. Run benchmarks
+
 ```bash
-# list configured targets
+# list all configured targets
 npm run benchmark -- list
 
-# run a full benchmark (build + deploy + loadtest + collect)
-npm run benchmark -- run my-api
+# run a full benchmark (build → deploy → loadtest → collect → cleanup)
+npm run benchmark -- run content-api/connect-rpc
 
-# run and publish results to Grafana Cloud
-npm run benchmark -- run my-api --publish
+# benchmark multiple implementations and compare
+npm run benchmark -- run content-api/connect-rpc
+npm run benchmark -- run content-api/spring-boot
+npm run benchmark -- compare results/content-api-connect-rpc-*.json results/content-api-spring-boot-*.json
 
-# compare results from multiple runs
-npm run benchmark -- compare results/go-api-2026-03-04T12-00-00-000Z.json results/java-api-2026-03-04T12-00-00-000Z.json
+# publish results to Grafana Cloud
+npm run benchmark -- run content-api/connect-rpc --publish
 ```
 
 ## Configuration
@@ -259,11 +297,43 @@ Custom scripts receive environment variables defined in `k6.env`. The bundled sc
 
 ## Adding a target project
 
-1. Create your project under `examples/` (or anywhere) with a `docker-compose.yml`
+The recommended way is to use Claude Code's `/scaffold-implementation` command, which handles everything end-to-end.
+
+To add one manually:
+
+1. Create your project under `projects/<project-name>/<implementation>/` with a `docker-compose.yml`
 2. Make sure the service has a health endpoint
 3. Add a target entry to `benchmark.config.json`
 4. Run `npm run benchmark -- list` to verify
 5. Run `npm run benchmark -- run <target-name>`
+
+## Claude Code commands
+
+This repo ships with Claude Code slash commands and architecture agents for scaffolding benchmark implementations.
+
+### `/scaffold-implementation`
+
+Interactive command that walks you through creating a new benchmark implementation:
+
+1. Pick a project (e.g., `content-api`)
+2. Pick an API style (`openapi`, `graphql`, `protobuf`)
+3. Name the implementation in kebab-case (e.g., `connect-rpc`, `spring-boot`)
+4. Specify language and framework
+5. Generate the full implementation (Dockerfile, docker-compose, source code, build files)
+6. Register the target in `benchmark.config.json`
+7. Verify with `npm run benchmark -- list`
+
+If a specialized architecture agent exists at `.claude/agents/<implementation>-<language>.md`, the command delegates to it for code generation. Otherwise it falls back to generic scaffolding.
+
+### Architecture agents
+
+Architecture agents live under `.claude/agents/` and define opinionated, layered code generation guides for specific tech stacks.
+
+| Agent | Stack | Description |
+| --- | --- | --- |
+| `connect-rpc-go.md` | Go + Connect RPC | Layered architecture (APP/API/DOMAIN/OUTBOX) with sqlc, River queue, goose migrations, zerolog, godotenv, and buf validate |
+
+To add a new agent, create `.claude/agents/<implementation>-<language>.md` following the same conventions. The scaffold command will automatically delegate to it.
 
 ## Project structure
 
@@ -279,7 +349,13 @@ toolkit/                       # the benchmark CLI toolkit
     publish/                   # OTLP formatter, Grafana Cloud client
     report/                    # comparison logic, terminal table, JSON writer
   k6/scripts/                  # bundled k6 test scripts
-examples/                      # target projects for benchmarking
+projects/                      # benchmark target projects
+  <project>/
+    _shared/                   # shared API specs and k6 scripts per style
+    <implementation>/          # individual implementations to benchmark
+.claude/
+  commands/                    # Claude Code slash commands
+  agents/                      # architecture agents for code generation
 results/                       # benchmark output (gitignored)
 ```
 
