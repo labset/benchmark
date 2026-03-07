@@ -101,7 +101,7 @@ npm run benchmark -- run content-api/spring-boot
 npm run benchmark -- compare results/content-api-connect-rpc-*.json results/content-api-spring-boot-*.json
 
 # publish results to Grafana Cloud
-npm run benchmark -- run content-api/connect-rpc --publish
+npm run benchmark -- publish results/content-api-connect-rpc-*.json
 ```
 
 ## Configuration
