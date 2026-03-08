@@ -144,7 +144,8 @@
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "benchmark_reqs_per_sec{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
           "legendFormat": "{{benchmark_target}} [{{benchmark_tag}}]",
-          "refId": "A"
+          "refId": "A",
+          "instant": true
         }
       ]
     },
@@ -180,7 +181,8 @@
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "benchmark_req_failed_rate{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
           "legendFormat": "{{benchmark_target}} [{{benchmark_tag}}]",
-          "refId": "A"
+          "refId": "A",
+          "instant": true
         }
       ]
     },
@@ -216,7 +218,8 @@
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "benchmark_checks_pass_rate{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
           "legendFormat": "{{benchmark_target}} [{{benchmark_tag}}]",
-          "refId": "A"
+          "refId": "A",
+          "instant": true
         }
       ]
     },
@@ -252,7 +255,8 @@
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "benchmark_build_duration{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
           "legendFormat": "{{benchmark_target}} [{{benchmark_tag}}]",
-          "refId": "A"
+          "refId": "A",
+          "instant": true
         }
       ]
     },
@@ -288,7 +292,8 @@
           "datasource": { "type": "prometheus", "uid": "${datasource}" },
           "expr": "benchmark_deploy_duration{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
           "legendFormat": "{{benchmark_target}} [{{benchmark_tag}}]",
-          "refId": "A"
+          "refId": "A",
+          "instant": true
         }
       ]
     },
