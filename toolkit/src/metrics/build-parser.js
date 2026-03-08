@@ -8,7 +8,8 @@
  * Returns an object mapping stage names to total duration in milliseconds,
  * e.g. { generate: 5200, builder: 12300, runtime: 800 }
  */
-export function parseBuildStages(output) {
+export function parseBuildStages(...outputs) {
+  const output = outputs.filter(Boolean).join('\n');
   const stepStage = new Map();
   const stageDurations = {};
 

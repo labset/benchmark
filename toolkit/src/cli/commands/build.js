@@ -26,7 +26,7 @@ export function buildCommand() {
       });
 
       const { durationMs, durationSec } = timer.stop();
-      const stages = parseBuildStages(result.stderr);
+      const stages = parseBuildStages(result.stdout, result.stderr);
 
       log.info({ target: targetName, durationMs, durationSec, stages, msg: 'build completed' });
 

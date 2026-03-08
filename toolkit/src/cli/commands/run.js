@@ -44,7 +44,7 @@ export function runCommand() {
             noCache: !options.cache,
           });
           const { durationMs } = timer.stop();
-          const stages = parseBuildStages(buildOutput.stderr);
+          const stages = parseBuildStages(buildOutput.stdout, buildOutput.stderr);
           buildResult = { durationMs, cached: options.cache, stages };
           log.info({ durationMs, stages, msg: 'build completed' });
         }
