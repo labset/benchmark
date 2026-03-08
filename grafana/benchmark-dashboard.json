@@ -1,0 +1,723 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "Prometheus data source for benchmark metrics",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "11.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "barchart",
+      "name": "Bar chart",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "bargauge",
+      "name": "Bar gauge",
+      "version": ""
+    },
+    {
+      "type": "panel",
+      "id": "table",
+      "name": "Table",
+      "version": ""
+    }
+  ],
+  "id": null,
+  "uid": null,
+  "title": "API Benchmark Results",
+  "description": "Compare benchmark results across API implementations — build time, deploy time, throughput, and latency",
+  "tags": ["benchmark", "api", "performance"],
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "refresh": "",
+  "schemaVersion": 39,
+  "version": 1,
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "label": "Data Source"
+      },
+      {
+        "name": "target",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "query": "label_values(benchmark_reqs_per_sec, benchmark_target)",
+        "current": {},
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "label": "Target",
+        "refresh": 2,
+        "sort": 1
+      },
+      {
+        "name": "tag",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "query": "label_values(benchmark_reqs_per_sec{benchmark_target=~\"$target\"}, benchmark_tag)",
+        "current": {},
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "allValue": ".*",
+        "label": "Tag",
+        "refresh": 2,
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "Overview",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "title": "Throughput",
+      "description": "Requests per second (higher is better)",
+      "gridPos": { "h": 6, "w": 5, "x": 0, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "red" },
+              { "value": 100, "color": "yellow" },
+              { "value": 500, "color": "green" }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "orientation": "vertical",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_reqs_per_sec{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "{{benchmark_target}} [{{benchmark_tag}}]",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Error Rate",
+      "description": "Request failure rate (lower is better)",
+      "gridPos": { "h": 6, "w": 5, "x": 5, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green" },
+              { "value": 0.01, "color": "yellow" },
+              { "value": 0.05, "color": "red" }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "orientation": "vertical",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_req_failed_rate{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "{{benchmark_target}} [{{benchmark_tag}}]",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Checks Pass Rate",
+      "description": "k6 check pass rate (higher is better)",
+      "gridPos": { "h": 6, "w": 5, "x": 10, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "red" },
+              { "value": 0.95, "color": "yellow" },
+              { "value": 1, "color": "green" }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "orientation": "vertical",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_checks_pass_rate{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "{{benchmark_target}} [{{benchmark_tag}}]",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Build Duration",
+      "description": "Docker build time in seconds",
+      "gridPos": { "h": 6, "w": 5, "x": 15, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green" },
+              { "value": 30000, "color": "yellow" },
+              { "value": 120000, "color": "red" }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "orientation": "vertical",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_build_duration{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "{{benchmark_target}} [{{benchmark_tag}}]",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Deploy Duration",
+      "description": "Time to healthy in seconds",
+      "gridPos": { "h": 6, "w": 4, "x": 20, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green" },
+              { "value": 10000, "color": "yellow" },
+              { "value": 60000, "color": "red" }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "orientation": "vertical",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_deploy_duration{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "{{benchmark_target}} [{{benchmark_tag}}]",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Latency Comparison",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 7 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "type": "barchart",
+      "title": "Response Time by Percentile",
+      "description": "Latency distribution across targets (lower is better)",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 8 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "always",
+        "groupWidth": 0.7,
+        "barWidth": 0.9,
+        "stacking": "none",
+        "legend": { "displayMode": "list", "placement": "right" },
+        "tooltip": { "mode": "multi" },
+        "xTickLabelRotation": 0
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        }
+      ],
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_req_duration_avg{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "{{benchmark_target}} — avg",
+          "refId": "A",
+          "instant": true
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_req_duration_med{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "{{benchmark_target}} — med",
+          "refId": "B",
+          "instant": true
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_req_duration_p90{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "{{benchmark_target}} — p90",
+          "refId": "C",
+          "instant": true
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_req_duration_p95{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "{{benchmark_target}} — p95",
+          "refId": "D",
+          "instant": true
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_req_duration_p99{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "{{benchmark_target}} — p99",
+          "refId": "E",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Throughput & Volume",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "type": "bargauge",
+      "title": "Requests per Second",
+      "description": "Throughput comparison across targets (higher is better)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 19 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "red" },
+              { "value": 100, "color": "yellow" },
+              { "value": 500, "color": "green" }
+            ]
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "valueMode": "color"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_reqs_per_sec{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "{{benchmark_target}} [{{benchmark_tag}}]",
+          "refId": "A",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "type": "bargauge",
+      "title": "Iterations per Second",
+      "description": "Iteration throughput across targets",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 19 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ipm",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "red" },
+              { "value": 100, "color": "yellow" },
+              { "value": 500, "color": "green" }
+            ]
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "valueMode": "color"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_iterations_per_sec{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "{{benchmark_target}} [{{benchmark_tag}}]",
+          "refId": "A",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Build & Deploy Comparison",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "type": "bargauge",
+      "title": "Build Time",
+      "description": "Docker build duration (lower is better)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green" },
+              { "value": 30000, "color": "yellow" },
+              { "value": 120000, "color": "red" }
+            ]
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "valueMode": "color"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_build_duration{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "{{benchmark_target}} [{{benchmark_tag}}]",
+          "refId": "A",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "type": "bargauge",
+      "title": "Deploy Time",
+      "description": "Time from docker compose up to healthy (lower is better)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "green" },
+              { "value": 10000, "color": "yellow" },
+              { "value": 60000, "color": "red" }
+            ]
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "valueMode": "color"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_deploy_duration{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "{{benchmark_target}} [{{benchmark_tag}}]",
+          "refId": "A",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Summary Table",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 36 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "type": "table",
+      "title": "All Metrics",
+      "description": "Full comparison table of all benchmark metrics",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 37 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "benchmark_target" },
+            "properties": [{ "id": "displayName", "value": "Target" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "benchmark_tag" },
+            "properties": [{ "id": "displayName", "value": "Tag" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Value #reqs_per_sec" },
+            "properties": [
+              { "id": "displayName", "value": "Req/s" },
+              { "id": "unit", "value": "reqps" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Value #avg" },
+            "properties": [
+              { "id": "displayName", "value": "Avg (ms)" },
+              { "id": "unit", "value": "ms" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Value #med" },
+            "properties": [
+              { "id": "displayName", "value": "Med (ms)" },
+              { "id": "unit", "value": "ms" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Value #p90" },
+            "properties": [
+              { "id": "displayName", "value": "p90 (ms)" },
+              { "id": "unit", "value": "ms" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Value #p95" },
+            "properties": [
+              { "id": "displayName", "value": "p95 (ms)" },
+              { "id": "unit", "value": "ms" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Value #p99" },
+            "properties": [
+              { "id": "displayName", "value": "p99 (ms)" },
+              { "id": "unit", "value": "ms" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Value #error_rate" },
+            "properties": [
+              { "id": "displayName", "value": "Error Rate" },
+              { "id": "unit", "value": "percentunit" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Value #build" },
+            "properties": [
+              { "id": "displayName", "value": "Build (ms)" },
+              { "id": "unit", "value": "ms" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Value #deploy" },
+            "properties": [
+              { "id": "displayName", "value": "Deploy (ms)" },
+              { "id": "unit", "value": "ms" }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [{ "displayName": "Req/s", "desc": true }],
+        "footer": { "show": false }
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "pattern": "benchmark_target|benchmark_tag|Value.*"
+            }
+          }
+        }
+      ],
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_reqs_per_sec{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "",
+          "refId": "reqs_per_sec",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_req_duration_avg{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "",
+          "refId": "avg",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_req_duration_med{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "",
+          "refId": "med",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_req_duration_p90{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "",
+          "refId": "p90",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_req_duration_p95{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "",
+          "refId": "p95",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_req_duration_p99{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "",
+          "refId": "p99",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_req_failed_rate{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "",
+          "refId": "error_rate",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_build_duration{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "",
+          "refId": "build",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_deploy_duration{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "",
+          "refId": "deploy",
+          "instant": true,
+          "format": "table"
+        }
+      ]
+    }
+  ]
+}

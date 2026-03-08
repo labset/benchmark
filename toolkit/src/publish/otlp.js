@@ -13,11 +13,17 @@ export async function publishResults(results) {
   const resource = resourceFromAttributes({
     'service.name': '@labset/benchmark-toolkit',
     'service.version': '1.0.0',
+  });
+
+  // Data point attributes become Prometheus labels directly.
+  // Resource attributes only appear as labels if promoted by Grafana Cloud,
+  // and custom attributes like benchmark.target are not in the default promoted list.
+  const attributes = {
     'benchmark.target': results.target,
     'benchmark.tag': results.tag,
     'host.os': results.environment.os,
     'host.arch': results.environment.arch,
-  });
+  };
 
   const exporter = new OTLPMetricExporter();
   const meterProvider = new MeterProvider({
@@ -32,37 +38,40 @@ export async function publishResults(results) {
 
   const meter = meterProvider.getMeter('benchmark');
 
+  // Helper to record a gauge with shared attributes.
+  // Units are omitted to avoid Grafana Cloud appending suffixes
+  // (e.g. _milliseconds, _ratio) which vary by configuration.
+  const gauge = (name, value) => {
+    meter.createGauge(name).record(value, attributes);
+  };
+
   // Build metrics
   if (results.metrics.build) {
-    meter
-      .createGauge('benchmark.build.duration', { unit: 'ms' })
-      .record(results.metrics.build.durationMs);
+    gauge('benchmark.build.duration', results.metrics.build.durationMs);
   }
 
   // Deploy metrics
   if (results.metrics.deploy) {
-    meter
-      .createGauge('benchmark.deploy.duration', { unit: 'ms' })
-      .record(results.metrics.deploy.durationMs);
+    gauge('benchmark.deploy.duration', results.metrics.deploy.durationMs);
   }
 
   // Load test metrics
   if (results.metrics.loadtest) {
     const s = results.metrics.loadtest.summary;
 
-    meter.createGauge('benchmark.reqs', { unit: '1' }).record(s.reqs);
-    meter.createGauge('benchmark.reqs_per_sec', { unit: '1/s' }).record(s.reqsPerSec);
-    meter.createGauge('benchmark.req_failed_rate', { unit: '1' }).record(s.reqFailedRate);
-    meter.createGauge('benchmark.req.duration.avg', { unit: 'ms' }).record(s.reqDuration.avg);
-    meter.createGauge('benchmark.req.duration.min', { unit: 'ms' }).record(s.reqDuration.min);
-    meter.createGauge('benchmark.req.duration.med', { unit: 'ms' }).record(s.reqDuration.med);
-    meter.createGauge('benchmark.req.duration.max', { unit: 'ms' }).record(s.reqDuration.max);
-    meter.createGauge('benchmark.req.duration.p90', { unit: 'ms' }).record(s.reqDuration.p90);
-    meter.createGauge('benchmark.req.duration.p95', { unit: 'ms' }).record(s.reqDuration.p95);
-    meter.createGauge('benchmark.req.duration.p99', { unit: 'ms' }).record(s.reqDuration.p99);
-    meter.createGauge('benchmark.checks_pass_rate', { unit: '1' }).record(s.checksPassRate);
-    meter.createGauge('benchmark.iterations', { unit: '1' }).record(s.iterations);
-    meter.createGauge('benchmark.iterations_per_sec', { unit: '1/s' }).record(s.iterationsPerSec);
+    gauge('benchmark.reqs', s.reqs);
+    gauge('benchmark.reqs_per_sec', s.reqsPerSec);
+    gauge('benchmark.req_failed_rate', s.reqFailedRate);
+    gauge('benchmark.req.duration.avg', s.reqDuration.avg);
+    gauge('benchmark.req.duration.min', s.reqDuration.min);
+    gauge('benchmark.req.duration.med', s.reqDuration.med);
+    gauge('benchmark.req.duration.max', s.reqDuration.max);
+    gauge('benchmark.req.duration.p90', s.reqDuration.p90);
+    gauge('benchmark.req.duration.p95', s.reqDuration.p95);
+    gauge('benchmark.req.duration.p99', s.reqDuration.p99);
+    gauge('benchmark.checks_pass_rate', s.checksPassRate);
+    gauge('benchmark.iterations', s.iterations);
+    gauge('benchmark.iterations_per_sec', s.iterationsPerSec);
   }
 
   await meterProvider.forceFlush();

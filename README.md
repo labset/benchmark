@@ -309,6 +309,25 @@ Metrics appear in Grafana with the `benchmark.*` prefix:
 - `benchmark.req_failed_rate`
 - `benchmark.checks_pass_rate`
 
+### Grafana dashboard
+
+A pre-built dashboard is included at `grafana/benchmark-dashboard.json`. To import it:
+
+1. In Grafana, go to **Dashboards** > **New** > **Import**
+2. Upload `grafana/benchmark-dashboard.json`
+3. Select your Prometheus data source
+4. Click **Import**
+
+The dashboard includes:
+
+- **Overview** — stat panels for throughput, error rate, checks pass rate, build and deploy times
+- **Latency Comparison** — bar chart of avg/med/p90/p95/p99 grouped by target
+- **Throughput & Volume** — bar gauges for requests/sec and iterations/sec
+- **Build & Deploy Comparison** — bar gauges comparing build and deploy times
+- **Summary Table** — all metrics in a sortable table
+
+Use the **Target** and **Tag** dropdowns at the top to filter by implementation and run tag.
+
 ## Custom k6 scripts
 
 The toolkit ships with default k6 scripts for HTTP and gRPC APIs in `toolkit/k6/scripts/`. To use a custom script, set the `k6.script` path in your target config:
@@ -399,6 +418,7 @@ projects/                      # benchmark target projects
 .claude/
   commands/                    # Claude Code slash commands
   agents/                      # architecture agents for code generation
+grafana/                       # Grafana dashboard JSON (importable)
 results/                       # benchmark output (gitignored)
 ```
 
