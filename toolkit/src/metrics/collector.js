@@ -11,11 +11,11 @@ async function getVersion(command, args) {
 }
 
 async function collectEnvironment() {
-  const [dockerVersion, nodeVersion, k6Version] = await Promise.all([
+  const [dockerVersion, nodeVersion] = await Promise.all([
     getVersion('docker', ['--version']),
     getVersion('node', ['--version']),
-    getVersion('docker', ['run', '--rm', 'grafana/k6:1.6.1', 'version']),
   ]);
+  const k6Version = 'grafana/k6:1.6.1';
 
   return {
     os: platform(),

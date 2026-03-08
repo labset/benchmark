@@ -226,7 +226,7 @@
     {
       "type": "stat",
       "title": "Build Duration",
-      "description": "Docker build time in seconds",
+      "description": "Docker build time in milliseconds",
       "gridPos": { "h": 6, "w": 5, "x": 15, "y": 1 },
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": {
@@ -263,7 +263,7 @@
     {
       "type": "stat",
       "title": "Deploy Duration",
-      "description": "Time to healthy in seconds",
+      "description": "Time from deploy to healthy in milliseconds",
       "gridPos": { "h": 6, "w": 4, "x": 20, "y": 1 },
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": {

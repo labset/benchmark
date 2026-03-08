@@ -24,13 +24,18 @@ export async function runK6(scriptPath, options = {}) {
   const dockerArgs = [
     'run',
     '--rm',
-    '--network',
-    'host',
     '-v',
     `${workDir}:/workspace:ro`,
     '-v',
     `${summaryDir}:/results`,
   ];
+
+  if (process.platform === 'linux') {
+    dockerArgs.push('--network', 'host');
+  } else {
+    // Docker Desktop (macOS/Windows): use host.docker.internal to reach host ports
+    dockerArgs.push('--add-host', 'host.docker.internal:host-gateway');
+  }
 
   for (const [key, value] of Object.entries(env)) {
     const mapped = value.startsWith('./') ? toContainerPath(value) : value;

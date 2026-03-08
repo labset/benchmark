@@ -168,7 +168,7 @@ All targets are defined in `benchmark.config.json` at the repo root. Each target
 
 ### Environment variables
 
-Grafana Cloud credentials are resolved from environment variables at config load time. The toolkit automatically loads a `.env` file from the repository root (see [Setup](#grafana-cloud-optional)).
+Grafana Cloud credentials are read from the standard `OTEL_EXPORTER_OTLP_*` environment variables when publishing results. The CLI automatically loads a `.env` file from the repository root (see [Setup](#grafana-cloud-optional)).
 
 | Variable                       | Description                                  |
 | ------------------------------ | -------------------------------------------- |
