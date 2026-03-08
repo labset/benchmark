@@ -2,7 +2,6 @@ import { Command } from 'commander';
 import { resolve } from 'node:path';
 import { loadConfig, resolveTarget } from '../../config/loader.js';
 import { composeBuild } from '../../core/docker.js';
-import { parseBuildStages } from '../../metrics/build-parser.js';
 import { startTimer } from '../../core/timer.js';
 import { getLogger } from '../../util/logger.js';
 
@@ -20,16 +19,15 @@ export function buildCommand() {
       const projectDir = resolve(target.path);
       const timer = startTimer();
 
-      const result = await composeBuild(projectDir, {
+      await composeBuild(projectDir, {
         composeFile: target.composeFile,
         noCache: !options.cache,
       });
 
       const { durationMs, durationSec } = timer.stop();
-      const stages = parseBuildStages(result.stdout, result.stderr);
 
-      log.info({ target: targetName, durationMs, durationSec, stages, msg: 'build completed' });
+      log.info({ target: targetName, durationMs, durationSec, msg: 'build completed' });
 
-      return { durationMs, cached: options.cache, stages };
+      return { durationMs, cached: options.cache };
     });
 }

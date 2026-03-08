@@ -45,18 +45,9 @@ export async function publishResults(results) {
     meter.createGauge(name).record(value, attributes);
   };
 
-  // Build metrics
+  // Build metrics (per-stage durations are reported via BuildKit OTLP traces)
   if (results.metrics.build) {
     gauge('benchmark.build.duration', results.metrics.build.durationMs);
-
-    // Per-stage build durations
-    const stages = results.metrics.build.stages;
-    if (stages) {
-      const stageGauge = meter.createGauge('benchmark.build.stage.duration');
-      for (const [stage, durationMs] of Object.entries(stages)) {
-        stageGauge.record(durationMs, { ...attributes, 'benchmark.build.stage': stage });
-      }
-    }
   }
 
   // Deploy metrics

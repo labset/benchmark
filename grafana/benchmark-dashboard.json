@@ -285,39 +285,6 @@
           "instant": true
         }
       ]
-    },
-    {
-      "type": "barchart",
-      "title": "Build Stage Breakdown (ms)",
-      "description": "Time spent per Dockerfile stage (lower is better)",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 29 },
-      "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "ms",
-          "color": { "mode": "palette-classic" }
-        },
-        "overrides": []
-      },
-      "options": {
-        "orientation": "vertical",
-        "showValue": "always",
-        "groupWidth": 0.7,
-        "barWidth": 0.8,
-        "stacking": "none",
-        "legend": { "displayMode": "list", "placement": "bottom" },
-        "tooltip": { "mode": "multi" },
-        "xTickLabelRotation": 0
-      },
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${datasource}" },
-          "expr": "benchmark_build_stage_duration{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
-          "legendFormat": "{{benchmark_target}} {{benchmark_build_stage}}",
-          "refId": "A",
-          "instant": true
-        }
-      ]
     }
   ]
 }
