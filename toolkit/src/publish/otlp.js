@@ -1,18 +1,16 @@
-import { MeterProvider } from '@opentelemetry/sdk-metrics';
+import { MeterProvider, PeriodicExportingMetricReader } from '@opentelemetry/sdk-metrics';
 import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
-import { Resource } from '@opentelemetry/resources';
+import { resourceFromAttributes } from '@opentelemetry/resources';
 import { getLogger } from '../util/logger.js';
 
 export async function publishResults(results) {
   const log = getLogger();
 
   if (!process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
-    throw new Error(
-      'OTEL_EXPORTER_OTLP_ENDPOINT is not set. Configure it in your .env file.'
-    );
+    throw new Error('OTEL_EXPORTER_OTLP_ENDPOINT is not set. Configure it in your .env file.');
   }
 
-  const resource = new Resource({
+  const resource = resourceFromAttributes({
     'service.name': '@labset/benchmark-toolkit',
     'service.version': '1.0.0',
     'benchmark.target': results.target,
@@ -25,7 +23,7 @@ export async function publishResults(results) {
   const meterProvider = new MeterProvider({
     resource,
     readers: [
-      new (await import('@opentelemetry/sdk-metrics')).PeriodicExportingMetricReader({
+      new PeriodicExportingMetricReader({
         exporter,
         exportIntervalMillis: 60_000,
       }),
@@ -36,13 +34,15 @@ export async function publishResults(results) {
 
   // Build metrics
   if (results.metrics.build) {
-    meter.createGauge('benchmark.build.duration', { unit: 'ms' })
+    meter
+      .createGauge('benchmark.build.duration', { unit: 'ms' })
       .record(results.metrics.build.durationMs);
   }
 
   // Deploy metrics
   if (results.metrics.deploy) {
-    meter.createGauge('benchmark.deploy.duration', { unit: 'ms' })
+    meter
+      .createGauge('benchmark.deploy.duration', { unit: 'ms' })
       .record(results.metrics.deploy.durationMs);
   }
 
