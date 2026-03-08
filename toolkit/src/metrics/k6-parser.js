@@ -2,14 +2,13 @@ export function parseK6Summary(raw) {
   const metrics = raw.metrics || {};
 
   // Support both HTTP and gRPC protocols.
-  // k6 --summary-export nests metric data under a .values object.
-  const reqDuration = metrics.http_req_duration?.values || metrics.grpc_req_duration?.values || {};
-  const reqs = metrics.http_reqs?.values || {};
-  const reqFailed = metrics.http_req_failed?.values || {};
-  const checks = metrics.checks?.values || {};
-  const iterations = metrics.iterations?.values || {};
-  const dataReceived = metrics.data_received?.values || {};
-  const dataSent = metrics.data_sent?.values || {};
+  const reqDuration = metrics.http_req_duration || metrics.grpc_req_duration || {};
+  const reqs = metrics.http_reqs || {};
+  const reqFailed = metrics.http_req_failed || {};
+  const checks = metrics.checks || {};
+  const iterations = metrics.iterations || {};
+  const dataReceived = metrics.data_received || {};
+  const dataSent = metrics.data_sent || {};
 
   return {
     reqs: reqs.count ?? iterations.count ?? 0,
@@ -28,6 +27,6 @@ export function parseK6Summary(raw) {
     iterationsPerSec: iterations.rate ?? 0,
     dataReceived: dataReceived.count ?? 0,
     dataSent: dataSent.count ?? 0,
-    checksPassRate: checks.rate ?? 0,
+    checksPassRate: checks.value ?? 0,
   };
 }
