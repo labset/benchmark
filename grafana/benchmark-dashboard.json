@@ -71,17 +71,10 @@
   },
   "panels": [
     {
-      "type": "row",
-      "title": "Performance",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
-      "collapsed": false,
-      "panels": []
-    },
-    {
       "type": "bargauge",
       "title": "Throughput (req/s)",
       "description": "Higher is better",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 1 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": {
         "defaults": {
@@ -114,7 +107,7 @@
       "type": "bargauge",
       "title": "Error Rate",
       "description": "Lower is better",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 1 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": {
         "defaults": {
@@ -153,17 +146,10 @@
       ]
     },
     {
-      "type": "row",
-      "title": "Latency",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
-      "collapsed": false,
-      "panels": []
-    },
-    {
       "type": "barchart",
       "title": "Response Time by Percentile (ms)",
       "description": "Lower is better",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 10 },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 8 },
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": {
         "defaults": {
@@ -214,17 +200,10 @@
       ]
     },
     {
-      "type": "row",
-      "title": "Build & Deploy",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 20 },
-      "collapsed": false,
-      "panels": []
-    },
-    {
       "type": "bargauge",
       "title": "Build Time",
       "description": "Total Docker build duration (lower is better)",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 21 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 18 },
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": {
         "defaults": {
@@ -257,7 +236,7 @@
       "type": "bargauge",
       "title": "Deploy Time",
       "description": "Time to healthy (lower is better)",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 21 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 18 },
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": {
         "defaults": {
