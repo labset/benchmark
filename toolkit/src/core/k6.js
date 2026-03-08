@@ -21,24 +21,27 @@ export async function runK6(scriptPath, options = {}) {
     return `/workspace/${relative(workDir, abs)}`;
   };
 
+  const isLinux = process.platform === 'linux';
+
   const dockerArgs = [
     'run',
     '--rm',
+    '--network',
+    'host',
     '-v',
     `${workDir}:/workspace:ro`,
     '-v',
     `${summaryDir}:/results`,
   ];
 
-  if (process.platform === 'linux') {
-    dockerArgs.push('--network', 'host');
-  } else {
-    // Docker Desktop (macOS/Windows): use host.docker.internal to reach host ports
-    dockerArgs.push('--add-host', 'host.docker.internal:host-gateway');
-  }
-
   for (const [key, value] of Object.entries(env)) {
-    const mapped = value.startsWith('./') ? toContainerPath(value) : value;
+    let mapped = value.startsWith('./') ? toContainerPath(value) : value;
+    // Docker Desktop (macOS/Windows): --network host still works but localhost
+    // inside the container resolves to the VM, not the macOS host.
+    // Rewrite localhost to host.docker.internal so k6 can reach published ports.
+    if (!isLinux) {
+      mapped = mapped.replace(/localhost|127\.0\.0\.1/g, 'host.docker.internal');
+    }
     dockerArgs.push('-e', `${key}=${mapped}`);
   }
 
