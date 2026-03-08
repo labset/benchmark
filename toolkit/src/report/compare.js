@@ -20,6 +20,9 @@ export function compareResults(results) {
 
     if (r.metrics.build) {
       row.buildMs = r.metrics.build.durationMs;
+      if (r.metrics.build.stages) {
+        row.stages = r.metrics.build.stages;
+      }
     }
 
     if (r.metrics.deploy) {
@@ -39,13 +42,31 @@ export function compareResults(results) {
     return row;
   });
 
+  // Collect all stage names across results
+  const stageNames = [...new Set(rows.flatMap((r) => Object.keys(r.stages ?? {})))].sort();
+
   // Find best values for highlighting
   const best = {};
-  const numericKeys = ['buildMs', 'deployMs', 'avgMs', 'p90Ms', 'p95Ms', 'p99Ms', 'errorRate'];
+  const numericKeys = [
+    'buildMs',
+    'deployMs',
+    'avgMs',
+    'p90Ms',
+    'p95Ms',
+    'p99Ms',
+    'errorRate',
+    ...stageNames.map((s) => `stage:${s}`),
+  ];
   const higherIsBetter = ['reqsPerSec'];
 
   for (const key of numericKeys) {
-    const values = rows.map((r) => r[key]).filter((v) => v !== undefined);
+    let values;
+    if (key.startsWith('stage:')) {
+      const stage = key.slice(6);
+      values = rows.map((r) => r.stages?.[stage]).filter((v) => v !== undefined);
+    } else {
+      values = rows.map((r) => r[key]).filter((v) => v !== undefined);
+    }
     if (values.length > 0) best[key] = Math.min(...values);
   }
 
@@ -54,5 +75,5 @@ export function compareResults(results) {
     if (values.length > 0) best[key] = Math.max(...values);
   }
 
-  return { rows, best };
+  return { rows, best, stageNames };
 }

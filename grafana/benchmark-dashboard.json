@@ -543,8 +543,48 @@
     },
     {
       "type": "row",
-      "title": "Summary Table",
+      "title": "Build Stage Breakdown",
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 36 },
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "type": "barchart",
+      "title": "Build Stage Duration",
+      "description": "Time spent in each Dockerfile build stage (lower is better)",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 37 },
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "always",
+        "groupWidth": 0.7,
+        "barWidth": 0.9,
+        "stacking": "none",
+        "legend": { "displayMode": "list", "placement": "right" },
+        "tooltip": { "mode": "multi" },
+        "xTickLabelRotation": 0
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "benchmark_build_stage_duration{benchmark_target=~\"$target\", benchmark_tag=~\"$tag\"}",
+          "legendFormat": "{{benchmark_target}} — {{benchmark_build_stage}}",
+          "refId": "A",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Summary Table",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 47 },
       "collapsed": false,
       "panels": []
     },
@@ -552,7 +592,7 @@
       "type": "table",
       "title": "All Metrics",
       "description": "Full comparison table of all benchmark metrics",
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 37 },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 48 },
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": {
         "defaults": {},

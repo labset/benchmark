@@ -5,6 +5,7 @@ import { composeBuild, composeUp, composeDown } from '../../core/docker.js';
 import { waitForHealthy } from '../../core/health.js';
 import { runK6 } from '../../core/k6.js';
 import { startTimer } from '../../core/timer.js';
+import { parseBuildStages } from '../../metrics/build-parser.js';
 import { parseK6Summary } from '../../metrics/k6-parser.js';
 import { collectResults } from '../../metrics/collector.js';
 import { writeResults } from '../../report/json.js';
@@ -38,13 +39,14 @@ export function runCommand() {
         if (!options.skipBuild) {
           log.info({ target: targetName, msg: 'phase: build' });
           const timer = startTimer();
-          await composeBuild(projectDir, {
+          const buildOutput = await composeBuild(projectDir, {
             composeFile: target.composeFile,
             noCache: !options.cache,
           });
           const { durationMs } = timer.stop();
-          buildResult = { durationMs, cached: options.cache };
-          log.info({ durationMs, msg: 'build completed' });
+          const stages = parseBuildStages(buildOutput.stderr);
+          buildResult = { durationMs, cached: options.cache, stages };
+          log.info({ durationMs, stages, msg: 'build completed' });
         }
 
         // --- Deploy phase ---

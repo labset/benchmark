@@ -12,20 +12,23 @@ function highlight(value, bestValue) {
   return value === bestValue ? chalk.green(formatted) : formatted;
 }
 
-export function renderComparisonTable({ rows, best }) {
+export function renderComparisonTable({ rows, best, stageNames = [] }) {
+  const head = [
+    chalk.bold('Target'),
+    chalk.bold('Tag'),
+    chalk.bold('Build (ms)'),
+    ...stageNames.map((s) => chalk.bold(`${s} (ms)`)),
+    chalk.bold('Deploy (ms)'),
+    chalk.bold('Reqs/s'),
+    chalk.bold('Avg (ms)'),
+    chalk.bold('p90 (ms)'),
+    chalk.bold('p95 (ms)'),
+    chalk.bold('p99 (ms)'),
+    chalk.bold('Error %'),
+  ];
+
   const table = new Table({
-    head: [
-      chalk.bold('Target'),
-      chalk.bold('Tag'),
-      chalk.bold('Build (ms)'),
-      chalk.bold('Deploy (ms)'),
-      chalk.bold('Reqs/s'),
-      chalk.bold('Avg (ms)'),
-      chalk.bold('p90 (ms)'),
-      chalk.bold('p95 (ms)'),
-      chalk.bold('p99 (ms)'),
-      chalk.bold('Error %'),
-    ],
+    head,
     style: { head: [], border: [] },
   });
 
@@ -34,6 +37,7 @@ export function renderComparisonTable({ rows, best }) {
       row.target,
       row.tag ?? '-',
       highlight(row.buildMs, best.buildMs),
+      ...stageNames.map((s) => highlight(row.stages?.[s], best[`stage:${s}`])),
       highlight(row.deployMs, best.deployMs),
       highlight(row.reqsPerSec, best.reqsPerSec),
       highlight(row.avgMs, best.avgMs),
