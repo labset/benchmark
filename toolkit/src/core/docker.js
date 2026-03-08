@@ -9,13 +9,12 @@ export async function composeBuild(projectDir, options = {}) {
   const log = getLogger();
   const { composeFile = 'docker-compose.yml', noCache = true } = options;
 
-  const args = composeArgs(composeFile, ['build']);
+  const args = composeArgs(composeFile, ['build', '--progress=plain']);
   if (noCache) args.push('--no-cache');
 
   log.info({ projectDir, noCache, msg: 'building docker compose project' });
   return exec('docker', ['compose', ...args], {
     cwd: projectDir,
-    stdio: 'inherit',
   });
 }
 

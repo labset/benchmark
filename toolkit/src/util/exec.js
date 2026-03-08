@@ -5,7 +5,7 @@ export async function exec(command, args = [], options = {}) {
   const log = getLogger();
   log.debug({ command, args, cwd: options.cwd, msg: 'executing command' });
 
-  await execa(command, args, {
+  return await execa(command, args, {
     stdio: options.stdio ?? 'pipe',
     cwd: options.cwd,
     env: options.env,

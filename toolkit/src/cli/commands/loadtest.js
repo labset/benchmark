@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { resolve } from 'node:path';
 import { loadConfig, resolveTarget } from '../../config/loader.js';
+import { waitForHealthy } from '../../core/health.js';
 import { runK6 } from '../../core/k6.js';
 import { parseK6Summary } from '../../metrics/k6-parser.js';
 import { getLogger } from '../../util/logger.js';
@@ -17,6 +18,9 @@ export function loadtestCommand() {
       const config = await loadConfig(globalOpts.config);
       const target = resolveTarget(config, targetName);
 
+      // Verify the service is healthy before starting the load test
+      await waitForHealthy(target);
+
       const scriptPath = resolve(target.k6.script);
       const vus = options.k6Vus ? parseInt(options.k6Vus, 10) : target.k6.vus;
       const duration = options.k6Duration ?? target.k6.duration;
@@ -31,9 +35,9 @@ export function loadtestCommand() {
 
       log.info({
         target: targetName,
-        reqsPerSec: summary.httpReqsPerSec.toFixed(1),
-        p95: summary.httpReqDuration.p95.toFixed(1),
-        errorRate: summary.httpReqFailed.toFixed(4),
+        reqsPerSec: summary.reqsPerSec.toFixed(1),
+        p95: summary.reqDuration.p95.toFixed(1),
+        errorRate: summary.reqFailedRate.toFixed(4),
         msg: 'load test completed',
       });
 

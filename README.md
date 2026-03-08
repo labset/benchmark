@@ -6,15 +6,35 @@ API benchmark platform for comparing backend service implementations. Define you
 
 - [Node.js](https://nodejs.org/) >= 22
 - [Docker](https://docs.docker.com/get-docker/) with Compose v2
-- [k6](https://grafana.com/docs/k6/latest/set-up/install-k6/) for load testing
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) for scaffolding implementations
 - A [Grafana Cloud](https://grafana.com/products/cloud/) account (optional, for publishing results)
+
+k6 load tests run inside Docker (`grafana/k6:1.6.1`) — no local k6 installation required.
 
 ## Setup
 
 ```bash
 npm install
 ```
+
+### Grafana Cloud (optional)
+
+To publish benchmark results to Grafana Cloud, create a `.env` file at the repository root:
+
+```bash
+cp .env.example .env
+```
+
+Then fill in the standard OpenTelemetry env vars:
+
+```env
+OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp-gateway-prod-us-central-0.grafana.net/otlp
+OTEL_EXPORTER_OTLP_HEADERS=Authorization=Basic <token>
+```
+
+To find these values, sign in to [Grafana Cloud](https://grafana.com), open your stack, and go to **Connections** > **OpenTelemetry (OTLP)**. Generate an API token and copy the two environment variables shown on the page.
+
+The toolkit uses the official [OpenTelemetry JS SDK](https://opentelemetry.io/docs/languages/js/) to export metrics, so it reads these env vars natively.
 
 ## Quick start
 
@@ -81,7 +101,7 @@ npm run benchmark -- run content-api/spring-boot
 npm run benchmark -- compare results/content-api-connect-rpc-*.json results/content-api-spring-boot-*.json
 
 # publish results to Grafana Cloud
-npm run benchmark -- run content-api/connect-rpc --publish
+npm run benchmark -- publish results/content-api-connect-rpc-*.json
 ```
 
 ## Configuration
@@ -129,11 +149,6 @@ All targets are defined in `benchmark.config.json` at the repo root. Each target
       "timeoutMs": 120000
     }
   },
-  "grafana": {
-    "endpoint": "https://otlp-gateway-prod-us-central-0.grafana.net/otlp",
-    "instanceId": "${GRAFANA_INSTANCE_ID}",
-    "apiKey": "${GRAFANA_API_KEY}"
-  },
   "output": { "dir": "./results" }
 }
 ```
@@ -153,14 +168,12 @@ All targets are defined in `benchmark.config.json` at the repo root. Each target
 
 ### Environment variables
 
-Grafana Cloud credentials are resolved from environment variables. Create a `.env` file or export them in your shell:
+Grafana Cloud credentials are read from the standard `OTEL_EXPORTER_OTLP_*` environment variables when publishing results. The CLI automatically loads a `.env` file from the repository root (see [Setup](#grafana-cloud-optional)).
 
-```bash
-export GRAFANA_INSTANCE_ID=your-instance-id
-export GRAFANA_API_KEY=your-api-key
-```
-
-Values in the config using `${VAR_NAME}` syntax are interpolated from the environment at load time.
+| Variable                       | Description                                  |
+| ------------------------------ | -------------------------------------------- |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | Grafana Cloud OTLP gateway URL               |
+| `OTEL_EXPORTER_OTLP_HEADERS`  | Auth header (`Authorization=Basic <token>`)  |
 
 ## Commands
 
@@ -212,12 +225,16 @@ npm run benchmark -- loadtest my-api
 npm run benchmark -- loadtest my-api --k6-vus 100 --k6-duration 1m
 ```
 
-### `benchmark publish <results>`
+### `benchmark publish <results...>`
 
-Publishes a results JSON file to Grafana Cloud.
+Publishes one or more results JSON files to Grafana Cloud. Accepts multiple files so you can batch-publish results from previous runs.
 
 ```bash
+# publish a single result
 npm run benchmark -- publish results/my-api-2026-03-04T12-00-00-000Z.json
+
+# publish multiple results at once
+npm run benchmark -- publish results/connect-rpc-*.json results/spring-boot-*.json
 ```
 
 ### `benchmark compare <targets...>`
@@ -265,32 +282,51 @@ Time from `docker compose up -d` until the service health check passes. Health i
 
 ### Load test (k6)
 
-Parsed from k6's `--summary-export` JSON output:
+Parsed from k6's `--summary-export` JSON output. Supports both HTTP (`http_req_duration`) and gRPC (`grpc_req_duration`) protocols:
 
-| Metric                | Description                        |
-| --------------------- | ---------------------------------- |
-| `httpReqs`            | Total HTTP requests                |
-| `httpReqsPerSec`      | Throughput (requests/second)       |
-| `httpReqDuration.avg` | Average response time (ms)         |
-| `httpReqDuration.med` | Median / p50 response time (ms)    |
-| `httpReqDuration.p90` | 90th percentile response time (ms) |
-| `httpReqDuration.p95` | 95th percentile response time (ms) |
-| `httpReqDuration.p99` | 99th percentile response time (ms) |
-| `httpReqFailed`       | Error rate (0.0 - 1.0)             |
-| `checksPassRate`      | k6 check pass rate (0.0 - 1.0)     |
+| Metric             | Description                        |
+| ------------------ | ---------------------------------- |
+| `reqs`             | Total requests (iterations)        |
+| `reqsPerSec`       | Throughput (requests/second)       |
+| `reqDuration.avg`  | Average response time (ms)         |
+| `reqDuration.med`  | Median / p50 response time (ms)    |
+| `reqDuration.p90`  | 90th percentile response time (ms) |
+| `reqDuration.p95`  | 95th percentile response time (ms) |
+| `reqDuration.p99`  | 99th percentile response time (ms) |
+| `reqFailedRate`    | Error rate (0.0 - 1.0)             |
+| `checksPassRate`   | k6 check pass rate (0.0 - 1.0)     |
 
 ## Grafana Cloud publishing
 
-Results are pushed to Grafana Cloud using the [OTLP/HTTP JSON](https://opentelemetry.io/docs/specs/otlp/) protocol. Each metric is sent as a gauge data point labeled with the target name, tag, and environment info.
+Results are pushed to Grafana Cloud using the [OpenTelemetry JS SDK](https://opentelemetry.io/docs/languages/js/) via OTLP/HTTP. Each metric is sent as a gauge data point with the target name, tag, and environment info as resource attributes. The SDK reads `OTEL_EXPORTER_OTLP_ENDPOINT` and `OTEL_EXPORTER_OTLP_HEADERS` from the environment (loaded via `.env`).
 
 Metrics appear in Grafana with the `benchmark.*` prefix:
 
 - `benchmark.build.duration`
 - `benchmark.deploy.duration`
-- `benchmark.http_reqs_per_sec`
-- `benchmark.http_req.duration.{avg,med,p90,p95,p99}`
-- `benchmark.http_req_failed_rate`
+- `benchmark.reqs_per_sec`
+- `benchmark.req.duration.{avg,med,p90,p95,p99}`
+- `benchmark.req_failed_rate`
 - `benchmark.checks_pass_rate`
+
+### Grafana dashboard
+
+A pre-built dashboard is included at `grafana/benchmark-dashboard.json`. To import it:
+
+1. In Grafana, go to **Dashboards** > **New** > **Import**
+2. Upload `grafana/benchmark-dashboard.json`
+3. Select your Prometheus data source
+4. Click **Import**
+
+The dashboard includes:
+
+- **Overview** — stat panels for throughput, error rate, checks pass rate, build and deploy times
+- **Latency Comparison** — bar chart of avg/med/p90/p95/p99 grouped by target
+- **Throughput & Volume** — bar gauges for requests/sec and iterations/sec
+- **Build & Deploy Comparison** — bar gauges comparing build and deploy times
+- **Summary Table** — all metrics in a sortable table
+
+Use the **Target** and **Tag** dropdowns at the top to filter by implementation and run tag.
 
 ## Custom k6 scripts
 
@@ -372,7 +408,7 @@ toolkit/                       # the benchmark CLI toolkit
     config/                    # zod schema, loader, defaults
     core/                      # docker, k6, timer, health check
     metrics/                   # result collector, k6 parser
-    publish/                   # OTLP formatter, Grafana Cloud client
+    publish/                   # OpenTelemetry OTLP metrics export
     report/                    # comparison logic, terminal table, JSON writer
   k6/scripts/                  # bundled k6 test scripts
 projects/                      # benchmark target projects
@@ -382,6 +418,7 @@ projects/                      # benchmark target projects
 .claude/
   commands/                    # Claude Code slash commands
   agents/                      # architecture agents for code generation
+grafana/                       # Grafana dashboard JSON (importable)
 results/                       # benchmark output (gitignored)
 ```
 
